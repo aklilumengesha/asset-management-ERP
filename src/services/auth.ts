@@ -29,23 +29,46 @@ interface UserDetails {
 
 export const authService = {
   async login(credentials: LoginCredentials): Promise<any> {
-    try {
-      const response = await axios.post(`${API_URL}/auth/login`, credentials)
-      localStorage.setItem('token', response.data.access_token);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    // Mock login - simulate API call
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        // Simple validation
+        if (credentials.email && credentials.password) {
+          const mockToken = btoa(JSON.stringify({
+            email: credentials.email,
+            exp: Date.now() + 24 * 60 * 60 * 1000 // 24 hours from now
+          }));
+          localStorage.setItem('token', mockToken);
+          localStorage.setItem('userEmail', credentials.email);
+          resolve({ access_token: mockToken });
+        } else {
+          reject({ response: { data: { detail: 'Invalid credentials' } } });
+        }
+      }, 500);
+    });
   },
 
   async signup(credentials: SignupCredentials): Promise<any> {
-    try {
-      const reponse = await axios.post(`${API_URL}/auth/register`, credentials)
-      localStorage.setItem('token', reponse.data.access_token);
-    } catch (error: any) {
-      console.log('Signup Error Response:', error.response?.data);
-      throw error;
-    }
+    // Mock signup - simulate API call
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        // Simple validation
+        if (credentials.email && credentials.password && credentials.first_name && credentials.last_name) {
+          const mockToken = btoa(JSON.stringify({
+            email: credentials.email,
+            first_name: credentials.first_name,
+            last_name: credentials.last_name,
+            exp: Date.now() + 24 * 60 * 60 * 1000 // 24 hours from now
+          }));
+          localStorage.setItem('token', mockToken);
+          localStorage.setItem('userEmail', credentials.email);
+          localStorage.setItem('userName', `${credentials.first_name} ${credentials.last_name}`);
+          resolve({ access_token: mockToken });
+        } else {
+          reject({ response: { data: { detail: 'All fields are required' } } });
+        }
+      }, 500);
+    });
   },
   
   async getUserDetails(): Promise<UserDetails> {
@@ -53,20 +76,33 @@ export const authService = {
     if (!token) {
       throw new Error('No authentication token found');
     }
-    try {
-      const response = await axios.post(`${API_URL}/auth/me`, {}, {
-        headers: {
-          Authorization: `Bearer ${token}`
+    
+    // Mock user details from token
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        try {
+          const decoded = JSON.parse(atob(token));
+          resolve({
+            id: 1,
+            email: decoded.email || localStorage.getItem('userEmail') || 'user@example.com',
+            first_name: decoded.first_name || 'Demo',
+            last_name: decoded.last_name || 'User'
+          });
+        } catch {
+          resolve({
+            id: 1,
+            email: localStorage.getItem('userEmail') || 'user@example.com',
+            first_name: 'Demo',
+            last_name: 'User'
+          });
         }
-      });
-      localStorage.setItem('userData', response.data);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+      }, 200);
+    });
   },
 
   logout() {
     localStorage.removeItem('token');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userName');
   }
 };
