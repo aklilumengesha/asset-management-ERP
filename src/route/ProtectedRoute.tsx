@@ -5,6 +5,19 @@ export default function ProtectedRoute({
 }: {
   children: React.ReactNode;
 }) {
+  // DEVELOPMENT MODE: Bypass authentication for local testing
+  // Remove this in production!
+  const isDevelopment = import.meta.env.DEV;
+  
+  if (isDevelopment) {
+    // Auto-create a mock token for development
+    if (!localStorage.getItem("token")) {
+      const mockToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkRldmVsb3BlciIsImV4cCI6OTk5OTk5OTk5OX0.mock";
+      localStorage.setItem("token", mockToken);
+    }
+    return children;
+  }
+
   const token = localStorage.getItem("token");
   const location = useLocation();
 
