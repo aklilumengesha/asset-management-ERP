@@ -1,15 +1,8 @@
-import axios from 'axios';
-
-const API_URL = 'http://127.0.0.1:8000';
+import { supabase } from '@/integrations/supabase/client';
 
 interface LoginCredentials {
   email: string;
   password: string;
-}
-
-interface LoginResponse {
-  access: string;
-  refresh: string;
 }
 
 interface SignupCredentials {
@@ -19,9 +12,8 @@ interface SignupCredentials {
   password: string;
 }
 
-// Add this interface after your existing interfaces
 interface UserDetails {
-  id: number;
+  id: string;
   email: string;
   first_name: string;
   last_name: string;
@@ -29,80 +21,108 @@ interface UserDetails {
 
 export const authService = {
   async login(credentials: LoginCredentials): Promise<any> {
-    // Mock login - simulate API call
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        // Simple validation
-        if (credentials.email && credentials.password) {
-          const mockToken = btoa(JSON.stringify({
-            email: credentials.email,
-            exp: Date.now() + 24 * 60 * 60 * 1000 // 24 hours from now
-          }));
-          localStorage.setItem('token', mockToken);
-          localStorage.setItem('userEmail', credentials.email);
-          resolve({ access_token: mockToken });
-        } else {
-          reject({ response: { data: { detail: 'Invalid credentials' } } });
-        }
-      }, 500);
-    });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: credentials.email,
+        password: credentials.password,
+      });
+
+      if (error) throw error;
+
+      if (data.session) {
+        localStorage.setItem('token', data.session.access_token);
+        localStorage.setItem('userEmail', credentials.email);
+      }
+
+      return { access_token: data.session?.access_token };
+    } catch (error: any) {
+      console.error('Login Error:', error);
+      throw { response: { data: { detail: error.message || 'Invalid credentials' } } };
+    }
   },
 
   async signup(credentials: SignupCredentials): Promise<any> {
-    // Mock signup - simulate API call
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        // Simple validation
-        if (credentials.email && credentials.password && credentials.first_name && credentials.last_name) {
-          const mockToken = btoa(JSON.stringify({
-            email: credentials.email,
+    try {
+      console.log('Starting signup process...', { email: credentials.email });
+      
+      const { data, error } = await supabase.auth.signUp({
+        email: credentials.email,
+        password: credentials.password,
+        options: {
+          data: {
             first_name: credentials.first_name,
             last_name: credentials.last_name,
-            exp: Date.now() + 24 * 60 * 60 * 1000 // 24 hours from now
-          }));
-          localStorage.setItem('token', mockToken);
-          localStorage.setItem('userEmail', credentials.email);
-          localStorage.setItem('userName', `${credentials.first_name} ${credentials.last_name}`);
-          resolve({ access_token: mockToken });
-        } else {
-          reject({ response: { data: { detail: 'All fields are required' } } });
+          },
+          emailRedirectTo: `${window.location.origin}/dashboard`
         }
-      }, 500);
-    });
+      });
+
+      console.log('Signup response:', { data, error });
+
+      if (error) {
+        console.error('Signup error from Supabase:', error);
+        throw error;
+      }
+
+      // Check if email confirmation is required
+      if (data.user && !data.session) {
+        console.log('Email confirmation required');
+        // Email confirmation required
+        return { 
+          access_token: null, 
+          requiresEmailConfirmation: true,
+          message: 'Please check your email to confirm your account'
+        };
+      }
+
+      if (data.session) {
+        console.log('Session created, storing token');
+        localStorage.setItem('token', data.session.access_token);
+        localStorage.setItem('userEmail', credentials.email);
+        localStorage.setItem('userName', `${credentials.first_name} ${credentials.last_name}`);
+      }
+
+      return { 
+        access_token: data.session?.access_token,
+        requiresEmailConfirmation: false
+      };
+    } catch (error: any) {
+      console.error('Signup Error Details:', {
+        message: error.message,
+        status: error.status,
+        error: error
+      });
+      throw { response: { data: { detail: error.message || 'Failed to create account' } } };
+    }
   },
   
   async getUserDetails(): Promise<UserDetails> {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser();
+
+      if (error) throw error;
+      if (!user) throw new Error('No user found');
+
+      return {
+        id: user.id,
+        email: user.email || '',
+        first_name: user.user_metadata?.first_name || 'User',
+        last_name: user.user_metadata?.last_name || ''
+      };
+    } catch (error: any) {
+      console.error('Get User Error:', error);
+      throw error;
     }
-    
-    // Mock user details from token
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        try {
-          const decoded = JSON.parse(atob(token));
-          resolve({
-            id: 1,
-            email: decoded.email || localStorage.getItem('userEmail') || 'user@example.com',
-            first_name: decoded.first_name || 'Demo',
-            last_name: decoded.last_name || 'User'
-          });
-        } catch {
-          resolve({
-            id: 1,
-            email: localStorage.getItem('userEmail') || 'user@example.com',
-            first_name: 'Demo',
-            last_name: 'User'
-          });
-        }
-      }, 200);
-    });
   },
 
-  logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('userName');
+  async logout() {
+    try {
+      await supabase.auth.signOut();
+      localStorage.removeItem('token');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userName');
+    } catch (error) {
+      console.error('Logout Error:', error);
+    }
   }
 };

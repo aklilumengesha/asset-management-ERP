@@ -1,5 +1,25 @@
+import { createClient } from '@supabase/supabase-js';
 
-// Mock Supabase client for demo purposes - no real Supabase connection needed
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+console.log('Supabase Config:', {
+  url: supabaseUrl,
+  hasKey: !!supabaseAnonKey,
+  keyLength: supabaseAnonKey?.length
+});
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('Missing Supabase environment variables!');
+  throw new Error('Supabase configuration is missing. Please check your .env file.');
+}
+
+// Create real Supabase client for authentication
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+console.log('Supabase client created successfully');
+
+// Mock data for demo purposes (keeping for other features)
 const mockData = {
   requests: [
     {
@@ -302,6 +322,7 @@ const mockData = {
   ]
 };
 
+// Mock client for non-auth features (keeping for demo data)
 const mockClient = {
   auth: {
     signOut: async () => ({ error: null }),
@@ -469,4 +490,5 @@ const mockClient = {
   }
 };
 
-export const supabase = mockClient;
+// Export mock data access methods (for non-auth features)
+export const mockSupabase = mockClient;

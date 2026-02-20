@@ -26,6 +26,8 @@ const Signup = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    console.log('Form submitted');
 
     if (password !== confirmPassword) {
       toast({
@@ -46,9 +48,10 @@ const Signup = () => {
     }
 
     setIsLoading(true);
+    console.log('Calling authService.signup...');
 
     try {
-      await authService.signup({
+      const result = await authService.signup({
         first_name: firstName,
         last_name: lastName,
         email,
@@ -56,15 +59,27 @@ const Signup = () => {
        
       });
 
-      toast({
-        title: "Account created!",
-        description: "Your account has been successfully created.",
-        variant: "default",
-      });
+      console.log('Signup result:', result);
 
-      // Redirect to login after successful signup
-      navigate("/login");
+      if (result.requiresEmailConfirmation) {
+        toast({
+          title: "Check your email!",
+          description: result.message || "Please check your email to confirm your account before logging in.",
+          variant: "default",
+        });
+        // Redirect to login after showing message
+        setTimeout(() => navigate("/login"), 2000);
+      } else {
+        toast({
+          title: "Account created!",
+          description: "Your account has been successfully created.",
+          variant: "default",
+        });
+        // Redirect to login after successful signup
+        navigate("/login");
+      }
     } catch (error: any) {
+      console.error('Signup failed:', error);
       toast({
         title: "Signup Failed",
         description: error.response?.data?.detail || "Failed to create account. Please try again.",
@@ -72,6 +87,7 @@ const Signup = () => {
       });
     } finally {
       setIsLoading(false);
+      console.log('Signup process completed');
     }
   };
 
