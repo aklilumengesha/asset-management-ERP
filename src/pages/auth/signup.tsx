@@ -26,8 +26,6 @@ const Signup = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    console.log('Form submitted');
 
     if (password !== confirmPassword) {
       toast({
@@ -48,7 +46,6 @@ const Signup = () => {
     }
 
     setIsLoading(true);
-    console.log('Calling authService.signup...');
 
     try {
       const result = await authService.signup({
@@ -58,8 +55,6 @@ const Signup = () => {
         password,
        
       });
-
-      console.log('Signup result:', result);
 
       if (result.requiresEmailConfirmation) {
         toast({
@@ -79,15 +74,22 @@ const Signup = () => {
         navigate("/login");
       }
     } catch (error: any) {
-      console.error('Signup failed:', error);
+      let errorMessage = error.response?.data?.detail || "Failed to create account. Please try again.";
+      
+      // Handle specific error cases
+      if (errorMessage.includes('rate limit')) {
+        errorMessage = "Too many signup attempts. Please wait an hour or try a different email address.";
+      } else if (errorMessage.includes('already registered')) {
+        errorMessage = "This email is already registered. Please try logging in instead.";
+      }
+      
       toast({
         title: "Signup Failed",
-        description: error.response?.data?.detail || "Failed to create account. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
-      console.log('Signup process completed');
     }
   };
 

@@ -43,8 +43,6 @@ export const authService = {
 
   async signup(credentials: SignupCredentials): Promise<any> {
     try {
-      console.log('Starting signup process...', { email: credentials.email });
-      
       const { data, error } = await supabase.auth.signUp({
         email: credentials.email,
         password: credentials.password,
@@ -57,16 +55,10 @@ export const authService = {
         }
       });
 
-      console.log('Signup response:', { data, error });
-
-      if (error) {
-        console.error('Signup error from Supabase:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       // Check if email confirmation is required
       if (data.user && !data.session) {
-        console.log('Email confirmation required');
         // Email confirmation required
         return { 
           access_token: null, 
@@ -76,7 +68,6 @@ export const authService = {
       }
 
       if (data.session) {
-        console.log('Session created, storing token');
         localStorage.setItem('token', data.session.access_token);
         localStorage.setItem('userEmail', credentials.email);
         localStorage.setItem('userName', `${credentials.first_name} ${credentials.last_name}`);
@@ -87,11 +78,7 @@ export const authService = {
         requiresEmailConfirmation: false
       };
     } catch (error: any) {
-      console.error('Signup Error Details:', {
-        message: error.message,
-        status: error.status,
-        error: error
-      });
+      console.error('Signup Error:', error.message);
       throw { response: { data: { detail: error.message || 'Failed to create account' } } };
     }
   },
