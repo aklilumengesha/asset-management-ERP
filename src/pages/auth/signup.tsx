@@ -75,18 +75,28 @@ const Signup = () => {
       }
     } catch (error: any) {
       let errorMessage = error.response?.data?.detail || "Failed to create account. Please try again.";
+      let errorTitle = "Signup Failed";
       
       // Handle specific error cases
       if (errorMessage.includes('rate limit')) {
-        errorMessage = "Too many signup attempts. Please wait an hour or try a different email address.";
-      } else if (errorMessage.includes('already registered')) {
+        errorTitle = "Rate Limit Reached";
+        errorMessage = "Too many signup attempts from your network. Please wait 1 hour, or go to your Supabase dashboard → Authentication → Rate Limits to increase the limit for development.";
+      } else if (errorMessage.includes('already registered') || errorMessage.includes('already been registered')) {
+        errorTitle = "Email Already Registered";
         errorMessage = "This email is already registered. Please try logging in instead.";
+      } else if (errorMessage.includes('Invalid email')) {
+        errorTitle = "Invalid Email";
+        errorMessage = "Please enter a valid email address.";
+      } else if (errorMessage.includes('Password')) {
+        errorTitle = "Weak Password";
+        errorMessage = "Password must be at least 6 characters long.";
       }
       
       toast({
-        title: "Signup Failed",
+        title: errorTitle,
         description: errorMessage,
         variant: "destructive",
+        duration: 8000, // Show for 8 seconds so user can read the full message
       });
     } finally {
       setIsLoading(false);
