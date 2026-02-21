@@ -1,17 +1,51 @@
 
 import { ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, Legend, Area, AreaChart } from "recharts";
-
-const data = [
-  { date: "Feb 8", requests: 65, previous: 55 },
-  { date: "Feb 9", requests: 40, previous: 45 },
-  { date: "Feb 10", requests: 55, previous: 52 },
-  { date: "Feb 11", requests: 80, previous: 70 },
-  { date: "Feb 12", requests: 45, previous: 48 },
-  { date: "Feb 13", requests: 70, previous: 65 },
-  { date: "Feb 14", requests: 62, previous: 58 },
-];
+import { Skeleton } from "@/components/ui/skeleton";
+import { useRequestTrends } from "@/hooks/useRequestTrends";
 
 export function OverviewGraph() {
+  const { data, loading, error } = useRequestTrends(7);
+
+  if (loading) {
+    return (
+      <div className="p-6 rounded-xl border shadow-sm bg-white overflow-hidden">
+        <div className="mb-4">
+          <Skeleton className="h-6 w-48 mb-2" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <Skeleton className="h-[350px] w-full" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 rounded-xl border shadow-sm bg-white overflow-hidden">
+        <div className="mb-4">
+          <h3 className="text-lg font-medium mb-1">Request Trends</h3>
+          <p className="text-sm text-muted-foreground">Comparison with previous period</p>
+        </div>
+        <div className="h-[350px] flex items-center justify-center text-sm text-destructive">
+          Error loading request trends
+        </div>
+      </div>
+    );
+  }
+
+  if (data.length === 0) {
+    return (
+      <div className="p-6 rounded-xl border shadow-sm bg-white overflow-hidden">
+        <div className="mb-4">
+          <h3 className="text-lg font-medium mb-1">Request Trends</h3>
+          <p className="text-sm text-muted-foreground">Comparison with previous period</p>
+        </div>
+        <div className="h-[350px] flex items-center justify-center text-sm text-muted-foreground">
+          No request data available
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 rounded-xl border shadow-sm bg-white overflow-hidden">
       <div className="mb-4">
