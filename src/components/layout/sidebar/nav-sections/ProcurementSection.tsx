@@ -9,11 +9,15 @@ interface ProcurementSectionProps {
 }
 
 export function ProcurementSection({ currentPath }: ProcurementSectionProps) {
-  const { role } = useRole();
-  const isProcurementRoute = currentPath.startsWith('/requests') || currentPath.startsWith('/purchase-orders');
+  const { role, isSuperAdmin, isProcurementManager } = useRole();
+  const isProcurementRoute = currentPath.startsWith('/requests') || 
+                             currentPath.startsWith('/purchase-orders') ||
+                             currentPath.startsWith('/grn');
   
-  // Employee can only see Requests, not Purchase Orders
+  // Employee can only see Requests
   const canSeePurchaseOrders = role !== 'employee';
+  // Only Super Admin and Procurement Manager can see GRN
+  const canSeeGRN = isSuperAdmin() || isProcurementManager();
   
   return (
     <NavGroup 
@@ -33,6 +37,14 @@ export function ProcurementSection({ currentPath }: ProcurementSectionProps) {
           depth={1}
         >
           Purchase Orders
+        </NavItem>
+      )}
+      {canSeeGRN && (
+        <NavItem 
+          href="/grn" 
+          depth={1}
+        >
+          Goods Receipt Notes
         </NavItem>
       )}
     </NavGroup>
