@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShoppingCart, FileText, TrendingUp, Clock } from "lucide-react";
 import { useRole } from "@/hooks/useRole";
+import { RecentActivityFeed } from "@/components/dashboard/RecentActivityFeed";
 
 export default function ProcurementManagerDashboard() {
   const { profile } = useRole();
@@ -81,34 +82,7 @@ export default function ProcurementManagerDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-start gap-3">
-              <div className="w-2 h-2 rounded-full bg-blue-500 mt-2" />
-              <div>
-                <p className="text-sm font-medium">PO-2024-045 created</p>
-                <p className="text-xs text-muted-foreground">2 hours ago</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-2 h-2 rounded-full bg-green-500 mt-2" />
-              <div>
-                <p className="text-sm font-medium">Request REQ-001 approved</p>
-                <p className="text-xs text-muted-foreground">4 hours ago</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-2 h-2 rounded-full bg-purple-500 mt-2" />
-              <div>
-                <p className="text-sm font-medium">Vendor payment processed</p>
-                <p className="text-xs text-muted-foreground">6 hours ago</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <RecentActivityFeed limit={5} module="procurement" />
       </div>
     </div>
   );

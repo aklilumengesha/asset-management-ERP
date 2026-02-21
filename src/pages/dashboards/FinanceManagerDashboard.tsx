@@ -3,6 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DollarSign, TrendingUp, FileText, AlertCircle } from "lucide-react";
 import { useRole } from "@/hooks/useRole";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { RecentActivityFeed } from "@/components/dashboard/RecentActivityFeed";
 
 export default function FinanceManagerDashboard() {
   const { profile, role } = useRole();
@@ -84,34 +85,7 @@ export default function FinanceManagerDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-start gap-3">
-              <div className="w-2 h-2 rounded-full bg-blue-500 mt-2" />
-              <div>
-                <p className="text-sm font-medium">Depreciation calculated for Q1</p>
-                <p className="text-xs text-muted-foreground">2 hours ago</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-2 h-2 rounded-full bg-green-500 mt-2" />
-              <div>
-                <p className="text-sm font-medium">Budget report approved</p>
-                <p className="text-xs text-muted-foreground">4 hours ago</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-2 h-2 rounded-full bg-purple-500 mt-2" />
-              <div>
-                <p className="text-sm font-medium">New asset valuation completed</p>
-                <p className="text-xs text-muted-foreground">6 hours ago</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <RecentActivityFeed limit={5} module="finance" />
       </div>
     </div>
   );
