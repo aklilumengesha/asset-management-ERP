@@ -1,10 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Users, Package, FileText, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { useRole } from "@/hooks/useRole";
 
 export default function SuperAdminDashboard() {
   const navigate = useNavigate();
+  const { role, profile } = useRole();
+  const { stats, loading, error } = useDashboardStats(role, profile?.id);
 
   return (
     <div className="space-y-6">
@@ -22,8 +27,19 @@ export default function SuperAdminDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">45</div>
-            <p className="text-xs text-muted-foreground">+3 from last month</p>
+            {loading ? (
+              <>
+                <Skeleton className="h-8 w-16 mb-2" />
+                <Skeleton className="h-4 w-32" />
+              </>
+            ) : error ? (
+              <div className="text-sm text-destructive">Error loading data</div>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{stats.totalUsers || 0}</div>
+                <p className="text-xs text-muted-foreground">Registered in system</p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -33,8 +49,19 @@ export default function SuperAdminDashboard() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,234</div>
-            <p className="text-xs text-muted-foreground">+12 this week</p>
+            {loading ? (
+              <>
+                <Skeleton className="h-8 w-16 mb-2" />
+                <Skeleton className="h-4 w-32" />
+              </>
+            ) : error ? (
+              <div className="text-sm text-destructive">Error loading data</div>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{stats.totalAssets || 0}</div>
+                <p className="text-xs text-muted-foreground">In inventory</p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -44,8 +71,21 @@ export default function SuperAdminDashboard() {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">23</div>
-            <p className="text-xs text-muted-foreground">8 pending approval</p>
+            {loading ? (
+              <>
+                <Skeleton className="h-8 w-16 mb-2" />
+                <Skeleton className="h-4 w-32" />
+              </>
+            ) : error ? (
+              <div className="text-sm text-destructive">Error loading data</div>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{stats.activeRequests || 0}</div>
+                <p className="text-xs text-muted-foreground">
+                  {stats.pendingApprovals || 0} pending approval
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -55,8 +95,19 @@ export default function SuperAdminDashboard() {
             <AlertCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">6</div>
-            <p className="text-xs text-muted-foreground">Require attention</p>
+            {loading ? (
+              <>
+                <Skeleton className="h-8 w-16 mb-2" />
+                <Skeleton className="h-4 w-32" />
+              </>
+            ) : error ? (
+              <div className="text-sm text-destructive">Error loading data</div>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{stats.systemAlerts || 0}</div>
+                <p className="text-xs text-muted-foreground">Require attention</p>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>

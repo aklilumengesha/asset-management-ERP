@@ -1,9 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { DollarSign, TrendingUp, FileText, AlertCircle } from "lucide-react";
 import { useRole } from "@/hooks/useRole";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
 
 export default function FinanceManagerDashboard() {
-  const { profile } = useRole();
+  const { profile, role } = useRole();
+  const { stats, loading } = useDashboardStats(role, profile?.id);
 
   return (
     <div className="p-6 space-y-6">

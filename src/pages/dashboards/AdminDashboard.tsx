@@ -1,9 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Users, Settings, FileText, Activity } from "lucide-react";
 import { useRole } from "@/hooks/useRole";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
 
 export default function AdminDashboard() {
-  const { profile } = useRole();
+  const { profile, role } = useRole();
+  const { stats, loading, error } = useDashboardStats(role, profile?.id);
 
   return (
     <div className="p-6 space-y-6">
@@ -21,8 +24,17 @@ export default function AdminDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">45</div>
-            <p className="text-xs text-muted-foreground">+3 from last month</p>
+            {loading ? (
+              <>
+                <Skeleton className="h-8 w-16 mb-2" />
+                <Skeleton className="h-4 w-32" />
+              </>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{stats.totalUsers || 0}</div>
+                <p className="text-xs text-muted-foreground">Registered in system</p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -32,8 +44,17 @@ export default function AdminDashboard() {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,234</div>
-            <p className="text-xs text-muted-foreground">+12 this week</p>
+            {loading ? (
+              <>
+                <Skeleton className="h-8 w-16 mb-2" />
+                <Skeleton className="h-4 w-32" />
+              </>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{stats.totalAssets || 0}</div>
+                <p className="text-xs text-muted-foreground">In inventory</p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -43,8 +64,19 @@ export default function AdminDashboard() {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">23</div>
-            <p className="text-xs text-muted-foreground">8 pending approval</p>
+            {loading ? (
+              <>
+                <Skeleton className="h-8 w-16 mb-2" />
+                <Skeleton className="h-4 w-32" />
+              </>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{stats.activeRequests || 0}</div>
+                <p className="text-xs text-muted-foreground">
+                  {stats.pendingApprovals || 0} pending approval
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -54,8 +86,17 @@ export default function AdminDashboard() {
             <Settings className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">98%</div>
-            <p className="text-xs text-muted-foreground">All systems operational</p>
+            {loading ? (
+              <>
+                <Skeleton className="h-8 w-16 mb-2" />
+                <Skeleton className="h-4 w-32" />
+              </>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">98%</div>
+                <p className="text-xs text-muted-foreground">All systems operational</p>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
