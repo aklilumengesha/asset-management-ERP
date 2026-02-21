@@ -1,12 +1,10 @@
 
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUserRole } from "@/hooks/useUserRole";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { PackageCheck, ArrowRight } from "lucide-react";
+import { PackageCheck } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { Progress } from "@/components/ui/progress";
 
@@ -33,8 +31,6 @@ export function RequestList({
     queryFn: async () => {
       const baseQuery = supabase.from('requests').select();
 
-      let finalQuery = baseQuery;
-      
       // Apply status and GRN status filters if provided
       if (status && grnStatus) {
         const { data, error } = await baseQuery
@@ -51,8 +47,11 @@ export function RequestList({
 
       // Apply user filter if needed
       if (filterByCurrentUser) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('User not authenticated');
+        
         const { data, error } = await baseQuery
-          .eq('created_by', 'current-user-id'); // In real app, this would be auth.uid()
+          .eq('created_by', user.id);
         if (error) throw error;
         return data;
       }

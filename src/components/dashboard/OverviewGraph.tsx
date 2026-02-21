@@ -1,5 +1,5 @@
 
-import { Line, LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, Legend, Area, AreaChart } from "recharts";
+import { ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, Legend, Area, AreaChart } from "recharts";
 
 const data = [
   { date: "Feb 8", requests: 65, previous: 55 },
