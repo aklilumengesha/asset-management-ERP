@@ -26,6 +26,19 @@ export function useInvitations() {
         .select()
         .single();
 
+      if (!error && data) {
+        // Log activity
+        await supabase.from('activity_logs').insert({
+          user_id: profile?.id,
+          action: 'create',
+          module: 'users',
+          entity_type: 'invitation',
+          entity_id: data.id,
+          description: `Invitation sent to ${email}`,
+          metadata: { email, role_id: roleId }
+        });
+      }
+
       return { data, error };
     } catch (err) {
       console.error('Create invitation error:', err);

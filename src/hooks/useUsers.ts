@@ -66,6 +66,22 @@ export function useUsers() {
       .update({ is_active: isActive })
       .eq('id', userId);
 
+    if (!error) {
+      // Log activity
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from('activity_logs').insert({
+          user_id: user.id,
+          action: 'update',
+          module: 'users',
+          entity_type: 'profile',
+          entity_id: userId,
+          description: `User status changed to ${isActive ? 'active' : 'inactive'}`
+        });
+      }
+      fetchUsers();
+    }
+
     if (error) throw error;
   };
 
@@ -74,6 +90,22 @@ export function useUsers() {
       .from('profiles')
       .delete()
       .eq('id', userId);
+
+    if (!error) {
+      // Log activity
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from('activity_logs').insert({
+          user_id: user.id,
+          action: 'delete',
+          module: 'users',
+          entity_type: 'profile',
+          entity_id: userId,
+          description: 'User deleted from system'
+        });
+      }
+      fetchUsers();
+    }
 
     if (error) throw error;
   };

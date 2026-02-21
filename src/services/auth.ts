@@ -32,6 +32,14 @@ export const authService = {
       if (data.session) {
         localStorage.setItem('token', data.session.access_token);
         localStorage.setItem('userEmail', credentials.email);
+        
+        // Log login activity
+        await supabase.from('activity_logs').insert({
+          user_id: data.user?.id,
+          action: 'login',
+          module: 'auth',
+          description: 'User logged in successfully'
+        });
       }
 
       return { access_token: data.session?.access_token };
@@ -159,6 +167,18 @@ export const authService = {
 
   async logout() {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      // Log logout activity before signing out
+      if (user) {
+        await supabase.from('activity_logs').insert({
+          user_id: user.id,
+          action: 'logout',
+          module: 'auth',
+          description: 'User logged out'
+        });
+      }
+      
       await supabase.auth.signOut();
       localStorage.removeItem('token');
       localStorage.removeItem('userEmail');
