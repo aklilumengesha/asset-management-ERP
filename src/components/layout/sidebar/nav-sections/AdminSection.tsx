@@ -2,12 +2,20 @@
 import { Settings, Users2, ShieldCheck, Building2, Link2, Building, History, GitBranch, Tag } from "lucide-react";
 import { NavGroup } from "../NavGroup";
 import { NavItem } from "../NavItem";
+import { useRole } from "@/hooks/useRole";
 
 interface AdminSectionProps {
   currentPath: string;
 }
 
 export function AdminSection({ currentPath }: AdminSectionProps) {
+  const { isSuperAdmin, isAdmin } = useRole();
+  
+  // Only Super Admin and Admin can see Admin section
+  if (!isSuperAdmin() && !isAdmin()) {
+    return null;
+  }
+
   return (
     <NavGroup 
       title="Admin" 

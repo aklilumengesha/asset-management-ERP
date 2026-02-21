@@ -2,15 +2,21 @@
 import { BoxIcon, ClipboardList, WrenchIcon, Trash2, DollarSign } from "lucide-react";
 import { NavItem } from "../NavItem";
 import { NavGroup } from "../NavGroup";
+import { useRole } from "@/hooks/useRole";
 
 interface AssetsSectionProps {
   currentPath: string;
 }
 
 export function AssetsSection({ currentPath }: AssetsSectionProps) {
+  const { role, isSuperAdmin, isAssetManager } = useRole();
   const isAssetsActive = currentPath.startsWith("/assets") || 
                          currentPath === "/maintenance" || 
                          currentPath === "/vendors";
+
+  // Employee can only see Asset List and Request
+  const canSeeMaintenanceAndDisposal = role !== 'employee';
+  const canSeeVendors = isSuperAdmin() || isAssetManager() || role === 'procurement_manager';
 
   return (
     <div className="space-y-1">
@@ -35,37 +41,43 @@ export function AssetsSection({ currentPath }: AssetsSectionProps) {
           Request
         </NavItem>
         
-        <NavItem 
-          href="/maintenance" 
-          depth={1}
-        >
-          <WrenchIcon className="h-4 w-4 mr-2" />
-          Maintenance
-        </NavItem>
+        {canSeeMaintenanceAndDisposal && (
+          <>
+            <NavItem 
+              href="/maintenance" 
+              depth={1}
+            >
+              <WrenchIcon className="h-4 w-4 mr-2" />
+              Maintenance
+            </NavItem>
+            
+            <NavItem 
+              href="/assets/disposal" 
+              depth={1}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Disposal
+            </NavItem>
+            
+            <NavItem 
+              href="/assets/capitalisation" 
+              depth={1}
+            >
+              <DollarSign className="h-4 w-4 mr-2" />
+              Capitalisation
+            </NavItem>
+          </>
+        )}
         
-        <NavItem 
-          href="/assets/disposal" 
-          depth={1}
-        >
-          <Trash2 className="h-4 w-4 mr-2" />
-          Disposal
-        </NavItem>
-        
-        <NavItem 
-          href="/assets/capitalisation" 
-          depth={1}
-        >
-          <DollarSign className="h-4 w-4 mr-2" />
-          Capitalisation
-        </NavItem>
-        
-        <NavItem 
-          href="/vendors" 
-          depth={1}
-        >
-          <BoxIcon className="h-4 w-4 mr-2" />
-          Vendors
-        </NavItem>
+        {canSeeVendors && (
+          <NavItem 
+            href="/vendors" 
+            depth={1}
+          >
+            <BoxIcon className="h-4 w-4 mr-2" />
+            Vendors
+          </NavItem>
+        )}
       </NavGroup>
     </div>
   );
