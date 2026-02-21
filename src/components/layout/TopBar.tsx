@@ -1,8 +1,19 @@
 
-import { Menu, Bell, Settings, User, Plus, Package } from "lucide-react";
+import { Menu, Bell, Settings, User, Plus, Package, LogOut, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useRole } from "@/hooks/useRole";
+import { authService } from "@/services/auth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -13,11 +24,45 @@ interface TopBarProps {
 export function TopBar({ onMenuClick, scrolled, onCreateRequest }: TopBarProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { profile, role, loading } = useRole();
   
   const isAssetsPage = location.pathname.startsWith('/assets');
   
   const handleCreateAsset = () => {
     navigate('/assets/create-from-po');
+  };
+
+  const handleLogout = async () => {
+    await authService.logout();
+    navigate('/login');
+  };
+
+  const getRoleDisplayName = (roleName: string | null) => {
+    if (!roleName) return 'User';
+    const roleMap: { [key: string]: string } = {
+      'super_admin': 'Super Admin',
+      'admin': 'Admin',
+      'finance_manager': 'Finance Manager',
+      'asset_manager': 'Asset Manager',
+      'procurement_manager': 'Procurement Manager',
+      'department_head': 'Department Head',
+      'employee': 'Employee'
+    };
+    return roleMap[roleName] || roleName;
+  };
+
+  const getRoleBadgeColor = (roleName: string | null) => {
+    if (!roleName) return 'default';
+    const colorMap: { [key: string]: string } = {
+      'super_admin': 'bg-purple-100 text-purple-800 hover:bg-purple-100',
+      'admin': 'bg-blue-100 text-blue-800 hover:bg-blue-100',
+      'finance_manager': 'bg-green-100 text-green-800 hover:bg-green-100',
+      'asset_manager': 'bg-orange-100 text-orange-800 hover:bg-orange-100',
+      'procurement_manager': 'bg-cyan-100 text-cyan-800 hover:bg-cyan-100',
+      'department_head': 'bg-indigo-100 text-indigo-800 hover:bg-indigo-100',
+      'employee': 'bg-gray-100 text-gray-800 hover:bg-gray-100'
+    };
+    return colorMap[roleName] || 'default';
   };
 
   return (
@@ -81,21 +126,67 @@ export function TopBar({ onMenuClick, scrolled, onCreateRequest }: TopBarProps) 
             variant="ghost" 
             size="icon" 
             className="hover:bg-primary/10 rounded-full"
+            onClick={() => navigate('/profile')}
           >
             <Settings className="h-5 w-5" />
             <span className="sr-only">Settings</span>
           </Button>
           
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="hover:bg-primary/10 rounded-full"
-          >
-            <div className="h-9 w-9 rounded-full bg-gray-100 flex items-center justify-center">
-              <User className="h-5 w-5 text-gray-600" />
-            </div>
-            <span className="sr-only">User profile</span>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="ghost" 
+                className="hover:bg-primary/10 rounded-full h-auto px-3 py-2"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                    <User className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="hidden md:flex flex-col items-start">
+                    <span className="text-sm font-medium">
+                      {loading ? 'Loading...' : `${profile?.first_name || 'User'} ${profile?.last_name || ''}`}
+                    </span>
+                    <Badge 
+                      variant="secondary" 
+                      className={cn("text-xs font-normal", getRoleBadgeColor(role))}
+                    >
+                      {getRoleDisplayName(role)}
+                    </Badge>
+                  </div>
+                </div>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium">
+                    {profile?.first_name} {profile?.last_name}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{profile?.email}</p>
+                  <Badge 
+                    variant="secondary" 
+                    className={cn("text-xs w-fit mt-1", getRoleBadgeColor(role))}
+                  >
+                    {getRoleDisplayName(role)}
+                  </Badge>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate('/profile')}>
+                <UserCircle className="mr-2 h-4 w-4" />
+                Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/profile')}>
+                <Settings className="mr-2 h-4 w-4" />
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>

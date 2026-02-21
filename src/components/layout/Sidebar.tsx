@@ -11,6 +11,9 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ReportsSection } from "./sidebar/nav-sections/ReportsSection";
 import { authService } from "@/services/auth";
+import { useRole } from "@/hooks/useRole";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface UserDetails {
   first_name: string;
@@ -26,6 +29,7 @@ interface SidebarProps {
 export function Sidebar({ isOpen, onOpenChange }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { profile, role } = useRole();
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
 
   useEffect(() => {
@@ -44,6 +48,34 @@ export function Sidebar({ isOpen, onOpenChange }: SidebarProps) {
   const handleLogout = () => {
     authService.logout();
     navigate("/login");
+  };
+
+  const getRoleDisplayName = (roleName: string | null) => {
+    if (!roleName) return 'User';
+    const roleMap: { [key: string]: string } = {
+      'super_admin': 'Super Admin',
+      'admin': 'Admin',
+      'finance_manager': 'Finance Manager',
+      'asset_manager': 'Asset Manager',
+      'procurement_manager': 'Procurement Manager',
+      'department_head': 'Department Head',
+      'employee': 'Employee'
+    };
+    return roleMap[roleName] || roleName;
+  };
+
+  const getRoleBadgeColor = (roleName: string | null) => {
+    if (!roleName) return 'default';
+    const colorMap: { [key: string]: string } = {
+      'super_admin': 'bg-purple-100 text-purple-800',
+      'admin': 'bg-blue-100 text-blue-800',
+      'finance_manager': 'bg-green-100 text-green-800',
+      'asset_manager': 'bg-orange-100 text-orange-800',
+      'procurement_manager': 'bg-cyan-100 text-cyan-800',
+      'department_head': 'bg-indigo-100 text-indigo-800',
+      'employee': 'bg-gray-100 text-gray-800'
+    };
+    return colorMap[roleName] || 'default';
   };
 
   return (
@@ -85,22 +117,31 @@ export function Sidebar({ isOpen, onOpenChange }: SidebarProps) {
             className="w-full flex items-center gap-3 px-2 py-1.5 h-auto hover:bg-gray-100/80"
             onClick={() => navigate("/profile")}
           >
-            <div className="h-8 w-8 rounded-full bg-primary/10" />
+            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+              <span className="text-sm font-semibold text-primary">
+                {profile?.first_name?.[0]}{profile?.last_name?.[0]}
+              </span>
+            </div>
 
             <div className="flex-1 min-w-0 text-left">
-              <p className="text-sm text-muted-foreground font-medium truncate">
-                {userDetails
+              <p className="text-sm font-medium truncate">
+                {profile
+                  ? `${profile.first_name} ${profile.last_name}`
+                  : userDetails
                   ? `${userDetails.first_name} ${userDetails.last_name}`
                   : "Loading..."}
               </p>
-              <p className="text-xs text-muted-foreground truncate">
-                {userDetails?.email || "Loading..."}
-              </p>
+              <Badge 
+                variant="secondary" 
+                className={cn("text-xs font-normal mt-0.5", getRoleBadgeColor(role))}
+              >
+                {getRoleDisplayName(role)}
+              </Badge>
             </div>
           </Button>
           <Button
             variant="ghost"
-            className="w-full flex items-center justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
+            className="w-full flex items-center justify-start text-red-500 hover:text-red-600 hover:bg-red-50 mt-2"
             onClick={handleLogout}
           >
             <LogOut className="h-4 w-4 mr-2" />
