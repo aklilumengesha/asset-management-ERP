@@ -44,7 +44,11 @@ export const authService = {
   async signup(credentials: SignupCredentials, invitationToken?: string | null, invitationData?: any): Promise<any> {
     try {
       // Check if this is the first user
-      const { data: isFirst } = await supabase.rpc('is_first_user');
+      const { data: profilesCount } = await supabase
+        .from('profiles')
+        .select('id', { count: 'exact', head: true });
+      
+      const isFirst = (profilesCount as any)?.count === 0;
       
       const { data, error } = await supabase.auth.signUp({
         email: credentials.email,
@@ -59,7 +63,9 @@ export const authService = {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
       // Check if email confirmation is required
       if (data.user && !data.session) {
@@ -78,22 +84,26 @@ export const authService = {
 
         // Determine role based on invitation or first user
         if (invitationData && invitationToken) {
-          roleId = invitationData.role_id;
-          departmentId = invitationData.department_id;
+          roleId = invitationData.role_id || invitationData.role?.id;
+          departmentId = invitationData.department_id || invitationData.department?.id || null;
         } else {
           // Get role ID for first user (super_admin) or regular user (employee)
-          const { data: roles } = await supabase
+          const { data: roles, error: roleError } = await supabase
             .from('roles')
             .select('id')
             .eq('name', isFirst ? 'super_admin' : 'employee')
             .single();
+          
+          if (roleError) {
+            throw roleError;
+          }
           
           roleId = roles?.id;
         }
 
         if (roleId) {
           // Create profile
-          await supabase.from('profiles').insert({
+          const { error: profileError } = await supabase.from('profiles').insert({
             id: data.user.id,
             email: credentials.email,
             first_name: credentials.first_name,
@@ -102,6 +112,12 @@ export const authService = {
             department_id: departmentId,
             is_active: true
           });
+
+          if (profileError) {
+            throw profileError;
+          }
+        } else {
+          throw new Error('Failed to determine user role');
         }
       }
 
@@ -117,7 +133,7 @@ export const authService = {
         isFirstUser: isFirst
       };
     } catch (error: any) {
-      console.error('Signup Error:', error.message);
+      console.error('Signup Error:', error);
       throw { response: { data: { detail: error.message || 'Failed to create account' } } };
     }
   },

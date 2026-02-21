@@ -40,6 +40,7 @@ const Signup = () => {
   const loadInvitation = async (token: string) => {
     try {
       const { data, error } = await getInvitationByToken(token);
+      
       if (error || !data) {
         toast({
           title: "Invalid Invitation",
@@ -48,8 +49,10 @@ const Signup = () => {
         });
         return;
       }
+      
       setInvitationData(data);
       setEmail(data.email);
+      
       toast({
         title: "Invitation Found",
         description: `You've been invited as ${data.role?.display_name}`,
@@ -81,13 +84,22 @@ const Signup = () => {
       return;
     }
 
+    if (!email || email.trim() === '') {
+      toast({
+        title: "Email Required",
+        description: "Please provide a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       const result = await authService.signup({
         first_name: firstName,
         last_name: lastName,
-        email,
+        email: email.trim(),
         password,
       }, invitationToken, invitationData);
 
@@ -195,8 +207,8 @@ const Signup = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="h-12"
-            disabled={!!invitationToken}
+            className={`h-12 ${invitationToken ? 'bg-muted cursor-not-allowed' : ''}`}
+            readOnly={!!invitationToken}
           />
           {invitationData && (
             <p className="text-xs text-muted-foreground">
