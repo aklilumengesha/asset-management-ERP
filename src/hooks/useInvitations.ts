@@ -1,41 +1,76 @@
+import { supabase } from '@/integrations/supabase/client';
+import { useRole } from './useRole';
 
 export function useInvitations() {
-  const createInvitation = async (email: string, role: string, department: string) => {
-    try {
-      // Mock successful invitation creation
-      console.log('Creating invitation for:', { email, role, department });
-      return { 
-        data: {
-          id: Math.random().toString(),
-          email,
-          role,
-          department,
-          status: 'pending'
-        }, 
-        error: null 
-      };
-    } catch (error: any) {
-      console.error('Error creating invitation:', error);
-      return { data: null, error };
-    }
+  const { profile } = useRole();
+
+  const createInvitation = async (email: string, roleId: string, departmentId: string) => {
+    // Generate a unique token
+    const token = crypto.randomUUID();
+    
+    // Set expiration to 7 days from now
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+
+    const { data, error } = await supabase
+      .from('invitations')
+      .insert({
+        email,
+        role_id: roleId,
+        department_id: departmentId || null,
+        invited_by: profile?.id,
+        token,
+        expires_at: expiresAt.toISOString()
+      })
+      .select()
+      .single();
+
+    return { data, error };
   };
 
   const getInvitationsByEmail = async (email: string) => {
-    try {
-      // Mock fetching invitations
-      console.log('Fetching invitations for:', email);
-      return { 
-        data: null,  // Simulating no pending invitations
-        error: null 
-      };
-    } catch (error: any) {
-      console.error('Error fetching invitation:', error);
-      return { data: null, error };
-    }
+    const { data, error } = await supabase
+      .from('invitations')
+      .select('*')
+      .eq('email', email)
+      .is('accepted_at', null)
+      .gt('expires_at', new Date().toISOString())
+      .single();
+
+    return { data, error };
+  };
+
+  const getInvitationByToken = async (token: string) => {
+    const { data, error } = await supabase
+      .from('invitations')
+      .select(`
+        *,
+        role:roles(*),
+        department:departments(*)
+      `)
+      .eq('token', token)
+      .is('accepted_at', null)
+      .gt('expires_at', new Date().toISOString())
+      .single();
+
+    return { data, error };
+  };
+
+  const acceptInvitation = async (token: string) => {
+    const { data, error } = await supabase
+      .from('invitations')
+      .update({ accepted_at: new Date().toISOString() })
+      .eq('token', token)
+      .select()
+      .single();
+
+    return { data, error };
   };
 
   return {
     createInvitation,
     getInvitationsByEmail,
+    getInvitationByToken,
+    acceptInvitation
   };
 }

@@ -41,7 +41,7 @@ export const authService = {
     }
   },
 
-  async signup(credentials: SignupCredentials): Promise<any> {
+  async signup(credentials: SignupCredentials, invitationToken?: string | null, invitationData?: any): Promise<any> {
     try {
       // Check if this is the first user
       const { data: isFirst } = await supabase.rpc('is_first_user');
@@ -73,21 +73,33 @@ export const authService = {
 
       // Create profile with role
       if (data.user) {
-        // Get super_admin role ID
-        const { data: roles } = await supabase
-          .from('roles')
-          .select('id')
-          .eq('name', isFirst ? 'super_admin' : 'employee')
-          .single();
+        let roleId;
+        let departmentId = null;
 
-        if (roles) {
+        // Determine role based on invitation or first user
+        if (invitationData && invitationToken) {
+          roleId = invitationData.role_id;
+          departmentId = invitationData.department_id;
+        } else {
+          // Get role ID for first user (super_admin) or regular user (employee)
+          const { data: roles } = await supabase
+            .from('roles')
+            .select('id')
+            .eq('name', isFirst ? 'super_admin' : 'employee')
+            .single();
+          
+          roleId = roles?.id;
+        }
+
+        if (roleId) {
           // Create profile
           await supabase.from('profiles').insert({
             id: data.user.id,
             email: credentials.email,
             first_name: credentials.first_name,
             last_name: credentials.last_name,
-            role_id: roles.id,
+            role_id: roleId,
+            department_id: departmentId,
             is_active: true
           });
         }

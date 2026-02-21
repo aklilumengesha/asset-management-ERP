@@ -1,38 +1,82 @@
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
-import { useQuery } from "@tanstack/react-query";
-import type { User } from "@/types/user";
-
-const mockUsers: User[] = [
-  {
-    id: '1',
-    name: 'Test User',
-    email: 'test@example.com',
-    role: 'Admin',
-    status: 'active',
-    department: 'IT',
-    createdAt: new Date().toISOString(),
-  }
-];
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  department: string | null;
+  status: 'active' | 'inactive';
+  createdAt: string;
+}
 
 export function useUsers() {
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
   const fetchUsers = async () => {
-    // Mock fetching users
-    console.log('Fetching users');
-    return mockUsers;
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select(`
+          id,
+          email,
+          first_name,
+          last_name,
+          is_active,
+          created_at,
+          role:roles(name, display_name),
+          department:departments(name)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const formattedUsers: User[] = (data || []).map((user: any) => ({
+        id: user.id,
+        name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'N/A',
+        email: user.email,
+        role: user.role?.display_name || 'Unknown',
+        department: user.department?.name || null,
+        status: user.is_active ? 'active' : 'inactive',
+        createdAt: user.created_at
+      }));
+
+      setUsers(formattedUsers);
+      setError(null);
+    } catch (err) {
+      setError(err as Error);
+      console.error('Error fetching users:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
   const updateUserStatus = async (userId: string, isActive: boolean) => {
-    console.log('Updating user status:', { userId, isActive });
+    const { error } = await supabase
+      .from('profiles')
+      .update({ is_active: isActive })
+      .eq('id', userId);
+
+    if (error) throw error;
   };
 
   const deleteUser = async (userId: string) => {
-    console.log('Deleting user:', userId);
-  };
+    // Delete profile (will cascade to auth.users due to foreign key)
+    const { error } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', userId);
 
-  const { data: users = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['users'],
-    queryFn: fetchUsers,
-  });
+    if (error) throw error;
+  };
 
   return {
     users,
@@ -40,6 +84,6 @@ export function useUsers() {
     error,
     updateUserStatus,
     deleteUser,
-    refetch,
+    refetch: fetchUsers
   };
 }

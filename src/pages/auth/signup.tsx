@@ -1,6 +1,6 @@
 import * as React from "react";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -10,8 +10,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { AuthLayout } from "@/route/AuthLayout";
 import { Eye, EyeOff, UserPlus } from "lucide-react";
 import { authService } from '@/services/auth';
+import { useInvitations } from '@/hooks/useInvitations';
 
 const Signup = () => {
+  const [searchParams] = useSearchParams();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -21,8 +23,42 @@ const Signup = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [invitationToken, setInvitationToken] = useState<string | null>(null);
+  const [invitationData, setInvitationData] = useState<any>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { getInvitationByToken, acceptInvitation } = useInvitations();
+
+  useEffect(() => {
+    const token = searchParams.get('token');
+    if (token) {
+      setInvitationToken(token);
+      loadInvitation(token);
+    }
+  }, [searchParams]);
+
+  const loadInvitation = async (token: string) => {
+    try {
+      const { data, error } = await getInvitationByToken(token);
+      if (error || !data) {
+        toast({
+          title: "Invalid Invitation",
+          description: "This invitation link is invalid or has expired.",
+          variant: "destructive",
+        });
+        return;
+      }
+      setInvitationData(data);
+      setEmail(data.email);
+      toast({
+        title: "Invitation Found",
+        description: `You've been invited as ${data.role?.display_name}`,
+        variant: "default",
+      });
+    } catch (error) {
+      console.error('Error loading invitation:', error);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,8 +89,12 @@ const Signup = () => {
         last_name: lastName,
         email,
         password,
-       
-      });
+      }, invitationToken, invitationData);
+
+      // Mark invitation as accepted if signup was via invitation
+      if (invitationToken && result.access_token) {
+        await acceptInvitation(invitationToken);
+      }
 
       if (result.requiresEmailConfirmation) {
         toast({
@@ -62,20 +102,20 @@ const Signup = () => {
           description: result.message || "Please check your email to confirm your account before logging in.",
           variant: "default",
         });
-        // Redirect to login after showing message
         setTimeout(() => navigate("/login"), 2000);
       } else {
-        const title = result.isFirstUser ? "Super Admin Account Created!" : "Account created!";
+        const title = result.isFirstUser ? "Super Admin Account Created!" : invitationData ? "Account created with invited role!" : "Account created!";
         const description = result.isFirstUser 
           ? "You are now the Super Admin with full system access."
-          : "Your account has been successfully created.";
+          : invitationData 
+            ? `Your account has been created as ${invitationData.role?.display_name}.`
+            : "Your account has been successfully created.";
         
         toast({
           title,
           description,
           variant: "default",
         });
-        // Redirect to login after successful signup
         navigate("/login");
       }
     } catch (error: any) {
@@ -156,7 +196,14 @@ const Signup = () => {
             onChange={(e) => setEmail(e.target.value)}
             required
             className="h-12"
+            disabled={!!invitationToken}
           />
+          {invitationData && (
+            <p className="text-xs text-muted-foreground">
+              Invited as {invitationData.role?.display_name}
+              {invitationData.department && ` in ${invitationData.department.name}`}
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">

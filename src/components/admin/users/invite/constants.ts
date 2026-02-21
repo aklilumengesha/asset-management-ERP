@@ -1,16 +1,20 @@
+// These will be fetched from the database in the component
+// For now, providing static data that matches the database
 
 export const roles = [
-  { id: "admin", name: "Admin" },
-  { id: "finance_manager", name: "Finance Manager" },
-  { id: "procurement_manager", name: "Procurement Manager" },
-  { id: "asset_manager", name: "Asset Manager" },
-  { id: "user", name: "Regular User" },
+  { id: '', name: 'Admin' },
+  { id: '', name: 'Finance Manager' },
+  { id: '', name: 'Asset Manager' },
+  { id: '', name: 'Procurement Manager' },
+  { id: '', name: 'Department Head' },
+  { id: '', name: 'Employee' }
 ];
 
 export const departments = [
-  { id: "it", name: "IT" },
-  { id: "finance", name: "Finance" },
-  { id: "procurement", name: "Procurement" },
-  { id: "operations", name: "Operations" },
-  { id: "hr", name: "Human Resources" },
+  { id: '', name: 'Engineering' },
+  { id: '', name: 'Finance' },
+  { id: '', name: 'HR' },
+  { id: '', name: 'Operations' },
+  { id: '', name: 'Sales' },
+  { id: '', name: 'Marketing' }
 ];
