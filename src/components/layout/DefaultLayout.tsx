@@ -54,8 +54,10 @@ export function DefaultLayout({ children }: DefaultLayoutProps) {
           onCreateRequest={() => setIsRequestPanelOpen(true)}
         />
         {showHorizontalNav && <HorizontalNav />}
-        <main className="max-w-7xl mx-auto px-6 py-6 animate-fade-in">
-          {children}
+        <main className="p-6 min-h-screen bg-gray-50">
+          <div className="max-w-7xl mx-auto">
+            {children}
+          </div>
         </main>
       </div>
 

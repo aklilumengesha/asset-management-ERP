@@ -19,6 +19,8 @@ export function useUsers() {
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
+      setError(null);
+      
       const { data, error } = await supabase
         .from('profiles')
         .select(`
@@ -46,10 +48,9 @@ export function useUsers() {
       }));
 
       setUsers(formattedUsers);
-      setError(null);
     } catch (err) {
-      setError(err as Error);
       console.error('Error fetching users:', err);
+      setError(err as Error);
     } finally {
       setIsLoading(false);
     }
@@ -69,7 +70,6 @@ export function useUsers() {
   };
 
   const deleteUser = async (userId: string) => {
-    // Delete profile (will cascade to auth.users due to foreign key)
     const { error } = await supabase
       .from('profiles')
       .delete()
