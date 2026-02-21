@@ -50,6 +50,7 @@ export function InviteUserForm({ onSuccess }: InviteUserFormProps) {
   const [roles, setRoles] = useState<Role[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -66,6 +67,7 @@ export function InviteUserForm({ onSuccess }: InviteUserFormProps) {
 
   const fetchRolesAndDepartments = async () => {
     try {
+      setError(null);
       // Fetch roles (exclude super_admin from invitation options)
       const { data: rolesData, error: rolesError } = await supabase
         .from('roles')
@@ -73,7 +75,10 @@ export function InviteUserForm({ onSuccess }: InviteUserFormProps) {
         .neq('name', 'super_admin')
         .order('display_name');
 
-      if (rolesError) throw rolesError;
+      if (rolesError) {
+        console.error('Roles error:', rolesError);
+        throw rolesError;
+      }
 
       // Fetch departments
       const { data: deptsData, error: deptsError } = await supabase
@@ -81,12 +86,16 @@ export function InviteUserForm({ onSuccess }: InviteUserFormProps) {
         .select('*')
         .order('name');
 
-      if (deptsError) throw deptsError;
+      if (deptsError) {
+        console.error('Departments error:', deptsError);
+        throw deptsError;
+      }
 
       setRoles(rolesData || []);
       setDepartments(deptsData || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching data:', error);
+      setError(error.message || 'Failed to load roles and departments');
       toast.error('Failed to load roles and departments');
     } finally {
       setLoading(false);
@@ -103,11 +112,13 @@ export function InviteUserForm({ onSuccess }: InviteUserFormProps) {
         return;
       }
 
-      // Create new invitation
+      // Create new invitation (convert "none" to empty string for department)
+      const departmentId = values.department === "none" ? "" : (values.department || "");
+      
       const { data, error } = await createInvitation(
         values.email, 
         values.role, 
-        values.department || ''
+        departmentId
       );
       
       if (error) {
@@ -133,6 +144,15 @@ export function InviteUserForm({ onSuccess }: InviteUserFormProps) {
 
   if (loading) {
     return <div className="p-4 text-center">Loading...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="p-4">
+        <div className="text-red-600 mb-4">{error}</div>
+        <Button onClick={fetchRolesAndDepartments}>Retry</Button>
+      </div>
+    );
   }
 
   return (
@@ -188,7 +208,7 @@ export function InviteUserForm({ onSuccess }: InviteUserFormProps) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {departments.map((dept) => (
                     <SelectItem key={dept.id} value={dept.id}>
                       {dept.name}

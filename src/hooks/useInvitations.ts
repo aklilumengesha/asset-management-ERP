@@ -5,27 +5,32 @@ export function useInvitations() {
   const { profile } = useRole();
 
   const createInvitation = async (email: string, roleId: string, departmentId: string) => {
-    // Generate a unique token
-    const token = crypto.randomUUID();
-    
-    // Set expiration to 7 days from now
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7);
+    try {
+      // Generate a unique token
+      const token = crypto.randomUUID();
+      
+      // Set expiration to 7 days from now
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7);
 
-    const { data, error } = await supabase
-      .from('invitations')
-      .insert({
-        email,
-        role_id: roleId,
-        department_id: departmentId || null,
-        invited_by: profile?.id,
-        token,
-        expires_at: expiresAt.toISOString()
-      })
-      .select()
-      .single();
+      const { data, error } = await supabase
+        .from('invitations')
+        .insert({
+          email,
+          role_id: roleId,
+          department_id: departmentId || null,
+          invited_by: profile?.id || null,
+          token,
+          expires_at: expiresAt.toISOString()
+        })
+        .select()
+        .single();
 
-    return { data, error };
+      return { data, error };
+    } catch (err) {
+      console.error('Create invitation error:', err);
+      return { data: null, error: err };
+    }
   };
 
   const getInvitationsByEmail = async (email: string) => {
