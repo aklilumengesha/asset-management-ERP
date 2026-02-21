@@ -65,9 +65,14 @@ const Signup = () => {
         // Redirect to login after showing message
         setTimeout(() => navigate("/login"), 2000);
       } else {
+        const title = result.isFirstUser ? "Super Admin Account Created!" : "Account created!";
+        const description = result.isFirstUser 
+          ? "You are now the Super Admin with full system access."
+          : "Your account has been successfully created.";
+        
         toast({
-          title: "Account created!",
-          description: "Your account has been successfully created.",
+          title,
+          description,
           variant: "default",
         });
         // Redirect to login after successful signup

@@ -487,30 +487,102 @@ export type Database = {
         }
         Relationships: []
       }
-      profiles: {
+      departments: {
         Row: {
-          created_at: string | null
-          department: string | null
+          created_at: string
+          description: string | null
           id: string
-          name: string | null
-          role: Database["public"]["Enums"]["user_role"]
-          updated_at: string | null
+          name: string
+          updated_at: string
         }
         Insert: {
-          created_at?: string | null
-          department?: string | null
-          id: string
-          name?: string | null
-          role?: Database["public"]["Enums"]["user_role"]
-          updated_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
         }
         Update: {
-          created_at?: string | null
-          department?: string | null
+          created_at?: string
+          description?: string | null
           id?: string
-          name?: string | null
-          role?: Database["public"]["Enums"]["user_role"]
-          updated_at?: string | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          department_id: string | null
+          email: string
+          first_name: string | null
+          id: string
+          is_active: boolean
+          last_name: string | null
+          role_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          department_id?: string | null
+          email: string
+          first_name?: string | null
+          id: string
+          is_active?: boolean
+          last_name?: string | null
+          role_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          department_id?: string | null
+          email?: string
+          first_name?: string | null
+          id?: string
+          is_active?: boolean
+          last_name?: string | null
+          role_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      roles: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_name: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_name: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_name?: string
+          id?: string
+          name?: string
         }
         Relationships: []
       }
@@ -781,6 +853,16 @@ export type Database = {
           status: string
           created_at: string
         }[]
+      }
+      get_user_role: {
+        Args: {
+          user_id: string
+        }
+        Returns: string
+      }
+      is_first_user: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
       }
     }
     Enums: {

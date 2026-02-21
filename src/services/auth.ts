@@ -43,6 +43,9 @@ export const authService = {
 
   async signup(credentials: SignupCredentials): Promise<any> {
     try {
+      // Check if this is the first user
+      const { data: isFirst } = await supabase.rpc('is_first_user');
+      
       const { data, error } = await supabase.auth.signUp({
         email: credentials.email,
         password: credentials.password,
@@ -50,6 +53,7 @@ export const authService = {
           data: {
             first_name: credentials.first_name,
             last_name: credentials.last_name,
+            is_first_user: isFirst
           },
           emailRedirectTo: `${window.location.origin}/dashboard`
         }
@@ -67,6 +71,28 @@ export const authService = {
         };
       }
 
+      // Create profile with role
+      if (data.user) {
+        // Get super_admin role ID
+        const { data: roles } = await supabase
+          .from('roles')
+          .select('id')
+          .eq('name', isFirst ? 'super_admin' : 'employee')
+          .single();
+
+        if (roles) {
+          // Create profile
+          await supabase.from('profiles').insert({
+            id: data.user.id,
+            email: credentials.email,
+            first_name: credentials.first_name,
+            last_name: credentials.last_name,
+            role_id: roles.id,
+            is_active: true
+          });
+        }
+      }
+
       if (data.session) {
         localStorage.setItem('token', data.session.access_token);
         localStorage.setItem('userEmail', credentials.email);
@@ -75,7 +101,8 @@ export const authService = {
 
       return { 
         access_token: data.session?.access_token,
-        requiresEmailConfirmation: false
+        requiresEmailConfirmation: false,
+        isFirstUser: isFirst
       };
     } catch (error: any) {
       console.error('Signup Error:', error.message);
