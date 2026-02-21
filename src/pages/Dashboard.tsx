@@ -1,5 +1,10 @@
 import { useRole } from "@/hooks/useRole";
 import SuperAdminDashboard from "./dashboards/SuperAdminDashboard";
+import AdminDashboard from "./dashboards/AdminDashboard";
+import FinanceManagerDashboard from "./dashboards/FinanceManagerDashboard";
+import AssetManagerDashboard from "./dashboards/AssetManagerDashboard";
+import ProcurementManagerDashboard from "./dashboards/ProcurementManagerDashboard";
+import DepartmentHeadDashboard from "./dashboards/DepartmentHeadDashboard";
 import EmployeeDashboard from "./dashboards/EmployeeDashboard";
 
 export default function Dashboard() {
@@ -15,11 +20,11 @@ export default function Dashboard() {
 
   // Route to appropriate dashboard based on role
   if (role === 'super_admin') return <SuperAdminDashboard />;
-  if (role === 'admin') return <SuperAdminDashboard />; // Temporary: use same as super_admin
-  if (role === 'finance_manager') return <SuperAdminDashboard />; // Temporary
-  if (role === 'asset_manager') return <SuperAdminDashboard />; // Temporary
-  if (role === 'procurement_manager') return <SuperAdminDashboard />; // Temporary
-  if (role === 'department_head') return <SuperAdminDashboard />; // Temporary
+  if (role === 'admin') return <AdminDashboard />;
+  if (role === 'finance_manager') return <FinanceManagerDashboard />;
+  if (role === 'asset_manager') return <AssetManagerDashboard />;
+  if (role === 'procurement_manager') return <ProcurementManagerDashboard />;
+  if (role === 'department_head') return <DepartmentHeadDashboard />;
   if (role === 'employee') return <EmployeeDashboard />;
 
   // Fallback for unknown roles
