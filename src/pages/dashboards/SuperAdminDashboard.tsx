@@ -5,6 +5,7 @@ import { Users, Package, FileText, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useRole } from "@/hooks/useRole";
+import { RecentActivityFeed } from "@/components/dashboard/RecentActivityFeed";
 
 export default function SuperAdminDashboard() {
   const navigate = useNavigate();
@@ -145,36 +146,7 @@ export default function SuperAdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-start space-x-3">
-                <div className="w-2 h-2 mt-2 rounded-full bg-blue-500" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">John created asset "Dell Laptop"</p>
-                  <p className="text-xs text-muted-foreground">2 hours ago</p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-3">
-                <div className="w-2 h-2 mt-2 rounded-full bg-green-500" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Sarah approved request REQ-001</p>
-                  <p className="text-xs text-muted-foreground">4 hours ago</p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-3">
-                <div className="w-2 h-2 mt-2 rounded-full bg-purple-500" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Mike created PO-2024-045</p>
-                  <p className="text-xs text-muted-foreground">6 hours ago</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <RecentActivityFeed limit={5} />
       </div>
     </div>
   );

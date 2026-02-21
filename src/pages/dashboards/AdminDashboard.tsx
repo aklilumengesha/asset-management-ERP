@@ -3,6 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Users, Settings, FileText, Activity } from "lucide-react";
 import { useRole } from "@/hooks/useRole";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { RecentActivityFeed } from "@/components/dashboard/RecentActivityFeed";
 
 export default function AdminDashboard() {
   const { profile, role } = useRole();
@@ -122,34 +123,7 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-start gap-3">
-              <div className="w-2 h-2 rounded-full bg-blue-500 mt-2" />
-              <div>
-                <p className="text-sm font-medium">New user registered</p>
-                <p className="text-xs text-muted-foreground">2 hours ago</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-2 h-2 rounded-full bg-green-500 mt-2" />
-              <div>
-                <p className="text-sm font-medium">System backup completed</p>
-                <p className="text-xs text-muted-foreground">4 hours ago</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-2 h-2 rounded-full bg-purple-500 mt-2" />
-              <div>
-                <p className="text-sm font-medium">Workflow rule updated</p>
-                <p className="text-xs text-muted-foreground">6 hours ago</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <RecentActivityFeed limit={5} />
       </div>
     </div>
   );
