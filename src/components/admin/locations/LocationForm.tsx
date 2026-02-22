@@ -9,22 +9,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
 import { useLocationTypes } from "@/hooks/useLocationTypes";
-
-const countries = [
-  { id: "US", name: "United States" },
-  { id: "CA", name: "Canada" },
-  { id: "UK", name: "United Kingdom" },
-  { id: "AU", name: "Australia" },
-  { id: "ET", name: "Ethiopia" },
-];
-
-const citiesByCountry: { [key: string]: string[] } = {
-  US: ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix"],
-  CA: ["Toronto", "Vancouver", "Montreal", "Calgary", "Ottawa"],
-  UK: ["London", "Manchester", "Birmingham", "Liverpool", "Edinburgh"],
-  AU: ["Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide"],
-  ET: ["Addis Ababa", "Dire Dawa", "Bahir Dar", "Hawassa", "Mekelle"],
-};
+import { useCountries } from "@/hooks/useCountries";
+import { useCities } from "@/hooks/useCities";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -42,7 +28,9 @@ interface LocationFormProps {
 
 export function LocationForm({ onSubmit, onCancel }: LocationFormProps) {
   const { types: locationTypes, loading: typesLoading } = useLocationTypes();
+  const { countries, loading: countriesLoading, getCountriesAsOptions } = useCountries();
   const [selectedCountry, setSelectedCountry] = useState<string>("");
+  const { getCitiesAsOptions, loading: citiesLoading } = useCities(selectedCountry);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -137,15 +125,15 @@ export function LocationForm({ onSubmit, onCancel }: LocationFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Country</FormLabel>
-                <Select onValueChange={handleCountryChange} defaultValue={field.value}>
+                <Select onValueChange={handleCountryChange} defaultValue={field.value} disabled={countriesLoading}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a country" />
+                      <SelectValue placeholder={countriesLoading ? "Loading countries..." : "Select a country"} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     {countries.map((country) => (
-                      <SelectItem key={country.id} value={country.id}>
+                      <SelectItem key={country.code} value={country.code}>
                         {country.name}
                       </SelectItem>
                     ))}
@@ -162,19 +150,18 @@ export function LocationForm({ onSubmit, onCancel }: LocationFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>City</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!selectedCountry || citiesLoading}>
                   <FormControl>
                     <SelectTrigger disabled={!selectedCountry}>
-                      <SelectValue placeholder="Select a city" />
+                      <SelectValue placeholder={citiesLoading ? "Loading cities..." : "Select a city"} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {selectedCountry &&
-                      citiesByCountry[selectedCountry].map((city) => (
-                        <SelectItem key={city} value={city}>
-                          {city}
-                        </SelectItem>
-                      ))}
+                    {getCitiesAsOptions(selectedCountry).map((city) => (
+                      <SelectItem key={city.value} value={city.value}>
+                        {city.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />
