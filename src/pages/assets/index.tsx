@@ -10,9 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Plus, ArrowRight, Trash2, ClipboardList, WrenchIcon, DollarSign } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { CreateAssetForm } from "@/components/assets/CreateAssetForm";
-import { assetStatuses } from "@/components/assets/constants";
 import { AssetLocation } from "@/types/asset";
 import { HorizontalAssetsTabs } from "@/components/assets/HorizontalAssetsTabs";
+import { useAssetStatuses } from "@/hooks/useAssetStatuses";
+import { useAssetCategories } from "@/hooks/useAssetCategories";
 import {
   Pagination,
   PaginationContent,
@@ -88,6 +89,8 @@ const locations: AssetLocation[] = [
 export default function Assets() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { categories: dbCategories, loading: categoriesLoading } = useAssetCategories();
+  const { statuses: dbStatuses, loading: statusesLoading } = useAssetStatuses();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [selectedLocation, setSelectedLocation] = useState("All");
@@ -104,8 +107,8 @@ export default function Assets() {
 
   const [assetListTab, setAssetListTab] = useState("all");
 
-  const categories = ["All", "IT Equipment", "Furniture", "Vehicle", "Office Equipment", "Manufacturing Equipment"];
-  const statuses = ["All", ...assetStatuses];
+  const categories = ["All", ...dbCategories.map(cat => cat.name)];
+  const statuses = ["All", ...dbStatuses.map(status => status.name)];
   const ITEMS_PER_PAGE = 10;
 
   const filteredAssets = mockAssets.filter((asset) => {
