@@ -1,11 +1,6 @@
+// Asset statuses are now managed dynamically in the database
+// Use the useAssetStatuses hook to fetch current statuses
+// See: booking/src/hooks/useAssetStatuses.ts
+// Database table: asset_statuses
 
-export const assetStatuses = [
-  "In Service",
-  "Under Repair",
-  "Retired",
-  "Stored",
-  "With Worker",
-  "In Transit",
-] as const;
-
-export type AssetStatus = (typeof assetStatuses)[number];
+// Legacy exports removed - statuses are now fully dynamic
