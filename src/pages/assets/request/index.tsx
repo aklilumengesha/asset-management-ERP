@@ -6,20 +6,20 @@ import { HorizontalAssetsTabs } from "@/components/assets/HorizontalAssetsTabs";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Combobox } from "@/components/ui/combobox";
+import { useAssetCategories } from "@/hooks/useAssetCategories";
 
 export default function AssetsRequest() {
   const navigate = useNavigate();
+  const { categories, loading: categoriesLoading } = useAssetCategories();
   const [categoryFilter, setCategoryFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("");
 
-  // Mock request types for the categories
-  const assetCategories = [
-    { value: "it", label: "IT Equipment" },
-    { value: "furniture", label: "Furniture" },
-    { value: "vehicle", label: "Vehicles" },
-    { value: "office", label: "Office Equipment" },
-  ];
+  // Transform categories for Combobox format
+  const assetCategoryOptions = categories.map(cat => ({
+    value: cat.id,
+    label: cat.name
+  }));
 
   const statusOptions = [
     { value: "pending", label: "Pending" },
@@ -66,10 +66,10 @@ export default function AssetsRequest() {
                 Asset Category
               </label>
               <Combobox 
-                options={assetCategories}
+                options={assetCategoryOptions}
                 value={categoryFilter}
                 onChange={setCategoryFilter}
-                placeholder="All categories"
+                placeholder={categoriesLoading ? "Loading categories..." : "All categories"}
                 searchPlaceholder="Search categories..."
               />
             </div>

@@ -30,15 +30,9 @@ export interface CreateRequestForm {
   lineItems: RequestLineItem[];
 }
 
-export const assetCategories = [
-  "IT Equipment",
-  "Furniture",
-  "Vehicle",
-  "Office Equipment",
-  "Machinery",
-  "Building",
-  "Land",
-] as const;
+// Asset categories are now managed dynamically in the database
+// Use the useAssetCategories hook to fetch categories
+// See: booking/src/hooks/useAssetCategories.ts
 
 export const costCenters = [
   "IT Department",
