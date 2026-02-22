@@ -4,18 +4,26 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Save } from "lucide-react";
 import { useState } from "react";
 import type { WorkflowConfiguration, WorkflowRule } from "@/types/workflow";
-import { assetCategories } from "@/pages/requests/types";
+import { useAssetCategories } from "@/hooks/useAssetCategories";
 import { WorkflowCreator } from "./WorkflowCreator";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export function WorkflowRules() {
+  const { categories, loading: categoriesLoading } = useAssetCategories();
   const [config, setConfig] = useState<WorkflowConfiguration>({
     rules: []
   });
 
-  const [selectedCategory, setSelectedCategory] = useState<string>(assetCategories[0]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedRange, setSelectedRange] = useState<{ min: number; max: number }>({ min: 0, max: 1000 });
+
+  // Set default category when categories load
+  useState(() => {
+    if (categories.length > 0 && !selectedCategory) {
+      setSelectedCategory(categories[0].name);
+    }
+  });
 
   const addRule = () => {
     if (config.rules.some(rule => rule.assetCategory === selectedCategory)) {
@@ -86,11 +94,17 @@ export function WorkflowRules() {
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {assetCategories.map(category => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
+                  {categoriesLoading ? (
+                    <SelectItem value="loading" disabled>Loading categories...</SelectItem>
+                  ) : categories.length === 0 ? (
+                    <SelectItem value="empty" disabled>No categories available</SelectItem>
+                  ) : (
+                    categories.map(category => (
+                      <SelectItem key={category.id} value={category.name}>
+                        {category.name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>

@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { assetCategories } from "../types";
+import { useAssetCategories } from "@/hooks/useAssetCategories";
 import { v4 as uuidv4 } from "uuid";
 import { useQuery } from "@tanstack/react-query";
 
@@ -19,6 +19,7 @@ interface CreateItemDialogProps {
 
 export function CreateItemDialog({ open, onOpenChange, onItemCreated }: CreateItemDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { categories, loading: categoriesLoading } = useAssetCategories();
   const [formData, setFormData] = useState({
     item_name: "",
     category: "",
@@ -193,11 +194,17 @@ export function CreateItemDialog({ open, onOpenChange, onItemCreated }: CreateIt
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
               <SelectContent>
-                {assetCategories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
+                {categoriesLoading ? (
+                  <SelectItem value="loading" disabled>Loading categories...</SelectItem>
+                ) : categories.length === 0 ? (
+                  <SelectItem value="empty" disabled>No categories available</SelectItem>
+                ) : (
+                  categories.map((category) => (
+                    <SelectItem key={category.id} value={category.name}>
+                      {category.name}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>

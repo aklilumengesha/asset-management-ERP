@@ -6,8 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { Button } from "@/components/ui/button";
 import { UseFormReturn } from "react-hook-form";
+import { useAssetCategories } from "@/hooks/useAssetCategories";
 
-const assetCategories = ["IT Equipment", "Furniture", "Vehicles"];
 const depreciationMethods = [
   { value: "straight-line", label: "Straight-Line" },
   { value: "declining-balance", label: "Double Declining Balance" },
