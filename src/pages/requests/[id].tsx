@@ -18,7 +18,7 @@ export default function RequestDetail() {
     department: "IT",
     date: "2024-02-20",
     totalCost: 1500,
-    status: "Pending",
+    status: "PENDING",
     items: [
       {
         id: 1,
@@ -34,7 +34,7 @@ export default function RequestDetail() {
         title: "Department Manager Approval",
         approver: "Jane Smith",
         role: "Manager",
-        status: "Pending",
+        status: "PENDING",
         date: null,
       }
     ],

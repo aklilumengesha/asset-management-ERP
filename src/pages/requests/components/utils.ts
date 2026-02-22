@@ -1,29 +1,32 @@
 
+// NOTE: This function is deprecated. Use useRequestStatuses().getStatusColor() instead.
+// Kept for backward compatibility during migration.
 export function getStatusColor(status: string) {
-  switch (status) {
-    case "Approved":
-      return "bg-green-100 text-green-700 border border-green-200";
-    case "Rejected":
-      return "bg-red-100 text-red-700 border border-red-200";
-    case "Pending":
-      return "bg-yellow-100 text-yellow-700 border border-yellow-200";
-    case "In Approval":
-      return "bg-amber-100 text-amber-700 border border-amber-200";
-    case "Not Started":
-      return "bg-gray-100 text-gray-700 border border-gray-200";
-    case "Draft":
-      return "bg-slate-100 text-slate-700 border border-slate-200";
-    case "Delivered":
-      return "bg-blue-100 text-blue-700 border border-blue-200";
-    case "Processing":
-      return "bg-purple-100 text-purple-700 border border-purple-200";
-    case "Cancelled":
-      return "bg-rose-100 text-rose-700 border border-rose-200";
-    case "Completed":
-      return "bg-emerald-100 text-emerald-700 border border-emerald-200";
-    default:
-      return "bg-indigo-100 text-indigo-700 border border-indigo-200";
-  }
+  // Fallback color mapping for backward compatibility
+  const colorMap: Record<string, string> = {
+    "Approved": "bg-green-100 text-green-700 border border-green-200",
+    "APPROVED": "bg-green-100 text-green-700 border border-green-200",
+    "Rejected": "bg-red-100 text-red-700 border border-red-200",
+    "REJECTED": "bg-red-100 text-red-700 border border-red-200",
+    "Pending": "bg-yellow-100 text-yellow-700 border border-yellow-200",
+    "PENDING": "bg-yellow-100 text-yellow-700 border border-yellow-200",
+    "In Approval": "bg-amber-100 text-amber-700 border border-amber-200",
+    "IN_APPROVAL": "bg-amber-100 text-amber-700 border border-amber-200",
+    "Not Started": "bg-gray-100 text-gray-700 border border-gray-200",
+    "NOT_STARTED": "bg-gray-100 text-gray-700 border border-gray-200",
+    "Draft": "bg-slate-100 text-slate-700 border border-slate-200",
+    "DRAFT": "bg-slate-100 text-slate-700 border border-slate-200",
+    "Delivered": "bg-blue-100 text-blue-700 border border-blue-200",
+    "DELIVERED": "bg-blue-100 text-blue-700 border border-blue-200",
+    "Processing": "bg-purple-100 text-purple-700 border border-purple-200",
+    "PROCESSING": "bg-purple-100 text-purple-700 border border-purple-200",
+    "Cancelled": "bg-rose-100 text-rose-700 border border-rose-200",
+    "CANCELLED": "bg-rose-100 text-rose-700 border border-rose-200",
+    "Completed": "bg-emerald-100 text-emerald-700 border border-emerald-200",
+    "COMPLETED": "bg-emerald-100 text-emerald-700 border border-emerald-200",
+  };
+  
+  return colorMap[status] || "bg-indigo-100 text-indigo-700 border border-indigo-200";
 }
 
 // Add utility function for tag colors

@@ -2,13 +2,15 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { getStatusColor } from "../utils";
+import { useRequestStatuses } from "@/hooks/useRequestStatuses";
 
 interface WorkflowTabProps {
   request: any; // TODO: Add proper type
 }
 
 export function WorkflowTab({ request }: WorkflowTabProps) {
+  const { getStatusColor } = useRequestStatuses();
+
   return (
     <Card>
       <CardHeader>
@@ -21,8 +23,8 @@ export function WorkflowTab({ request }: WorkflowTabProps) {
               <div className="relative">
                 <div className={cn(
                   "w-10 h-10 rounded-full flex items-center justify-center border-2",
-                  step.status === "Approved" ? "border-green-500 bg-green-50" :
-                  step.status === "Pending" ? "border-yellow-500 bg-yellow-50" :
+                  step.status === "APPROVED" || step.status === "Approved" ? "border-green-500 bg-green-50" :
+                  step.status === "PENDING" || step.status === "Pending" ? "border-yellow-500 bg-yellow-50" :
                   "border-gray-300 bg-gray-50"
                 )}>
                   <span className="text-sm font-medium">{index + 1}</span>

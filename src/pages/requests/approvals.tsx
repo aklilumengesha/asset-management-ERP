@@ -16,6 +16,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { useRequestStatuses } from "@/hooks/useRequestStatuses";
 
 const getMockRequests = () => {
   return [
@@ -23,7 +24,7 @@ const getMockRequests = () => {
       id: "REQ-2024-001",
       title: "MacBook Pro M3 for Engineering Team",
       department: "Engineering",
-      status: "In Approval",
+      status: "IN_APPROVAL",
       date: "2024-01-15",
       totalCost: 2799.00,
       requester: "John Smith",
@@ -42,7 +43,7 @@ const getMockRequests = () => {
       id: "REQ-2024-004",
       title: "Conference Room AV Equipment",
       department: "IT",
-      status: "In Approval",
+      status: "IN_APPROVAL",
       date: "2024-01-22",
       totalCost: 5500.00,
       requester: "Alice Brown",
@@ -63,13 +64,14 @@ const getMockRequests = () => {
         }
       ]
     }
-  ].filter(request => request.status === "In Approval");
+  ].filter(request => request.status === "IN_APPROVAL");
 };
 
 export default function Approvals() {
   const requests = getMockRequests();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { getStatusByCode } = useRequestStatuses();
   const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
 
