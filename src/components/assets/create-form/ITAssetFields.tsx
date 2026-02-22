@@ -5,8 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { UseFormReturn } from "react-hook-form";
 import { FormValues } from "./schema";
-import { itCategories } from "./constants";
 import { useConditionGrades } from "@/hooks/useConditionGrades";
+import { useITAssetCategories } from "@/hooks/useITAssetCategories";
 
 interface ITAssetFieldsProps {
   form: UseFormReturn<FormValues>;
@@ -14,6 +14,8 @@ interface ITAssetFieldsProps {
 
 export function ITAssetFields({ form }: ITAssetFieldsProps) {
   const { grades, loading: gradesLoading } = useConditionGrades();
+  const { categories, loading: categoriesLoading } = useITAssetCategories();
+  
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -23,16 +25,16 @@ export function ITAssetFields({ form }: ITAssetFieldsProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>IT Asset Type</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} defaultValue={field.value} disabled={categoriesLoading}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select IT asset type" />
+                    <SelectValue placeholder={categoriesLoading ? "Loading categories..." : "Select IT asset type"} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {itCategories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.name}>
+                      {category.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
