@@ -8,7 +8,15 @@
 
 import type { Option } from "./types";
 
-// Depreciation methods remain static as they are standard accounting methods
+// Depreciation methods are now managed dynamically in the database
+// Use the useDepreciationMethods hook to fetch current methods
+// See: booking/src/hooks/useDepreciationMethods.ts
+// Database table: depreciation_methods
+
+// Legacy DEPRECIATION_METHODS export removed - use useDepreciationMethods hook instead
+// For backward compatibility during migration, a temporary export is provided below
+// TODO: Remove this after all components are updated to use the hook
+
 export const DEPRECIATION_METHODS: Option[] = [
   { value: "straight-line", label: "Straight Line" },
   { value: "declining-balance", label: "Declining Balance" },

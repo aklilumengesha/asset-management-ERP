@@ -7,13 +7,7 @@ import { CustomSelect } from "@/components/ui/custom-select";
 import { Button } from "@/components/ui/button";
 import { UseFormReturn } from "react-hook-form";
 import { useAssetCategories } from "@/hooks/useAssetCategories";
-
-const depreciationMethods = [
-  { value: "straight-line", label: "Straight-Line" },
-  { value: "declining-balance", label: "Double Declining Balance" },
-  { value: "sum-of-years", label: "Sum of Years Digits" },
-  { value: "MACRS", label: "MACRS" },
-];
+import { useDepreciationMethods } from "@/hooks/useDepreciationMethods";
 
 interface TaxDepreciationProps {
   selectedCategory: string;
@@ -22,6 +16,7 @@ interface TaxDepreciationProps {
 }
 
 export function TaxDepreciation({ selectedCategory, onMethodChange, onLifeChange }: TaxDepreciationProps) {
+  const { getMethodsAsOptions, loading: methodsLoading } = useDepreciationMethods();
   const [salvageValue, setSalvageValue] = useState("");
   const [usefulLife, setUsefulLife] = useState("");
   const [selectedMethod, setSelectedMethod] = useState("");
@@ -42,10 +37,11 @@ export function TaxDepreciation({ selectedCategory, onMethodChange, onLifeChange
         <div className="grid gap-2">
           <Label>Tax Depreciation Method</Label>
           <CustomSelect
-            options={depreciationMethods}
+            options={getMethodsAsOptions('tax')}
             value={selectedMethod}
             onChange={handleMethodChange}
             placeholder="Select tax depreciation method"
+            disabled={methodsLoading}
           />
         </div>
         <div className="grid gap-2">

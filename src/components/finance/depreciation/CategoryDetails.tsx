@@ -11,9 +11,9 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { HelpCircle, Calendar as CalendarIcon } from "lucide-react";
 import { AssetCategory } from "./types";
-import { DEPRECIATION_METHODS } from "./constants";
 import { cn } from "@/lib/utils";
 import { AuditHistory } from "./AuditHistory";
+import { useDepreciationMethods } from "@/hooks/useDepreciationMethods";
 
 interface CategoryDetailsProps {
   category: AssetCategory;
@@ -30,6 +30,8 @@ export function CategoryDetails({
   onEdit,
   onSave,
 }: CategoryDetailsProps) {
+  const { getMethodsAsOptions, loading: methodsLoading } = useDepreciationMethods();
+  
   return (
     <TooltipProvider>
       <Card className="lg:col-span-2 w-full">
@@ -75,12 +77,13 @@ export function CategoryDetails({
                     </Tooltip>
                   </div>
                   <CustomSelect
-                    options={DEPRECIATION_METHODS}
+                    options={getMethodsAsOptions('ifrs')}
                     value={(pendingChanges.ifrsMethod || category.ifrsMethod)}
                     onChange={(value) => {
                       onPendingChangesUpdate({ ...pendingChanges, ifrsMethod: value });
                     }}
                     placeholder="Select depreciation method"
+                    disabled={methodsLoading}
                   />
                 </div>
                 <div>
@@ -211,12 +214,13 @@ export function CategoryDetails({
                     </Tooltip>
                   </div>
                   <CustomSelect
-                    options={DEPRECIATION_METHODS}
+                    options={getMethodsAsOptions('tax')}
                     value={(pendingChanges.taxMethod || category.taxMethod)}
                     onChange={(value) => {
                       onPendingChangesUpdate({ ...pendingChanges, taxMethod: value });
                     }}
                     placeholder="Select depreciation method"
+                    disabled={methodsLoading}
                   />
                 </div>
                 <div>
