@@ -1,52 +1,53 @@
-
-import { WalletIcon } from "lucide-react";
 import { NavGroup } from "../NavGroup";
 import { NavItem } from "../NavItem";
-import { useRole } from "@/hooks/useRole";
+import { useNavigationMenu } from "@/hooks/useNavigationMenu";
+import { getIcon } from "@/utils/iconMapper";
 
 interface FinanceSectionProps {
   currentPath: string;
 }
 
 export function FinanceSection({ currentPath }: FinanceSectionProps) {
-  const { isSuperAdmin, isFinanceManager } = useRole();
-  const isFinanceRoute = currentPath.startsWith('/admin/finance');
+  const { groups, getItemsForGroup } = useNavigationMenu();
   
-  // Only Super Admin and Finance Manager can see Finance section
-  if (!isSuperAdmin() && !isFinanceManager()) {
+  // Find the Finance group
+  const financeGroup = groups.find(g => g.name === 'Finance');
+  
+  // If no finance group or user doesn't have access, don't render
+  if (!financeGroup) {
     return null;
   }
+
+  // Get items for this group
+  const items = getItemsForGroup(financeGroup.id);
+  
+  if (items.length === 0) {
+    return null;
+  }
+
+  const GroupIcon = getIcon(financeGroup.icon);
+  const isFinanceRoute = currentPath.startsWith('/admin/finance');
   
   return (
     <NavGroup 
-      title="Finance" 
-      icon={WalletIcon}
+      title={financeGroup.name}
+      icon={GroupIcon}
       defaultOpen={isFinanceRoute}
     >
-      <NavItem 
-        href="/admin/finance/depreciation-setup" 
-        depth={1}
-      >
-        Depreciation Setup
-      </NavItem>
-      <NavItem 
-        href="/admin/finance/depreciation-schedule" 
-        depth={1}
-      >
-        Depreciation Schedules
-      </NavItem>
-      <NavItem 
-        href="/admin/finance/impairment-revaluation" 
-        depth={1}
-      >
-        Revaluation/Impairment
-      </NavItem>
-      <NavItem 
-        href="/admin/finance/erp-integration" 
-        depth={1}
-      >
-        ERP Integration
-      </NavItem>
+      {items.map((item) => {
+        const ItemIcon = item.icon ? getIcon(item.icon) : null;
+        
+        return (
+          <NavItem 
+            key={item.id}
+            href={item.path}
+            depth={item.depth}
+          >
+            {ItemIcon && <ItemIcon className="h-4 w-4 mr-2" />}
+            {item.label}
+          </NavItem>
+        );
+      })}
     </NavGroup>
   );
 }
