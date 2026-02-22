@@ -8,14 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
-
-const locationTypes = [
-  "Head Office",
-  "Regional Office",
-  "Branch",
-  "Warehouse",
-  "Store",
-];
+import { useLocationTypes } from "@/hooks/useLocationTypes";
 
 const countries = [
   { id: "US", name: "United States" },
@@ -48,6 +41,7 @@ interface LocationFormProps {
 }
 
 export function LocationForm({ onSubmit, onCancel }: LocationFormProps) {
+  const { types: locationTypes, loading: typesLoading } = useLocationTypes();
   const [selectedCountry, setSelectedCountry] = useState<string>("");
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -117,16 +111,16 @@ export function LocationForm({ onSubmit, onCancel }: LocationFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Location Type</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} defaultValue={field.value} disabled={typesLoading}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a type" />
+                    <SelectValue placeholder={typesLoading ? "Loading types..." : "Select a type"} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
                   {locationTypes.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
+                    <SelectItem key={type.id} value={type.name}>
+                      {type.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
