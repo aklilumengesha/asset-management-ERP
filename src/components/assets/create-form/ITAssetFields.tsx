@@ -5,13 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { UseFormReturn } from "react-hook-form";
 import { FormValues } from "./schema";
-import { itCategories, conditionGrades } from "./constants";
+import { itCategories } from "./constants";
+import { useConditionGrades } from "@/hooks/useConditionGrades";
 
 interface ITAssetFieldsProps {
   form: UseFormReturn<FormValues>;
 }
 
 export function ITAssetFields({ form }: ITAssetFieldsProps) {
+  const { grades, loading: gradesLoading } = useConditionGrades();
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -106,16 +108,16 @@ export function ITAssetFields({ form }: ITAssetFieldsProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Condition Grade</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} defaultValue={field.value} disabled={gradesLoading}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select condition grade" />
+                    <SelectValue placeholder={gradesLoading ? "Loading grades..." : "Select condition grade"} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {conditionGrades.map((grade) => (
-                    <SelectItem key={grade.value} value={grade.value}>
-                      {grade.label}
+                  {grades.map((grade) => (
+                    <SelectItem key={grade.id} value={grade.grade_code}>
+                      {grade.grade_code} - {grade.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
