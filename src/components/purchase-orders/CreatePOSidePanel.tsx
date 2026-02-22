@@ -23,6 +23,7 @@ import { X } from "lucide-react";
 import type { CreatePOForm } from "@/pages/purchase-orders/types";
 import { usePaymentTerms } from "@/hooks/usePaymentTerms";
 import { useDeliveryTerms } from "@/hooks/useDeliveryTerms";
+import { useUnitsOfMeasure } from "@/hooks/useUnitsOfMeasure";
 
 interface CreatePOSidePanelProps {
   open: boolean;
@@ -34,6 +35,7 @@ export function CreatePOSidePanel({ open, onClose, onSuccess }: CreatePOSidePane
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { terms, loading: termsLoading, getDefaultTerm } = usePaymentTerms();
   const { terms: deliveryTerms, loading: deliveryLoading, getDefaultTerm: getDefaultDeliveryTerm } = useDeliveryTerms();
+  const { units, loading: unitsLoading, getDefaultUnit } = useUnitsOfMeasure();
 
   // Define form with default values
   const form = useForm<CreatePOForm>({
@@ -52,7 +54,7 @@ export function CreatePOSidePanel({ open, onClose, onSuccess }: CreatePOSidePane
         {
           name: "",
           description: "",
-          unit_of_measure: "Units",
+          unit_of_measure: getDefaultUnit()?.name || "Units",
           quantity: 1,
           unit_price: 0,
           remarks: "",
@@ -140,7 +142,7 @@ export function CreatePOSidePanel({ open, onClose, onSuccess }: CreatePOSidePane
       {
         name: "",
         description: "",
-        unit_of_measure: "Units",
+        unit_of_measure: getDefaultUnit()?.name || "Units",
         quantity: 1,
         unit_price: 0,
         remarks: "",
@@ -396,12 +398,22 @@ export function CreatePOSidePanel({ open, onClose, onSuccess }: CreatePOSidePane
                           <Label htmlFor={`items.${index}.unit_of_measure`}>
                             Unit of Measure
                           </Label>
-                          <Input
-                            id={`items.${index}.unit_of_measure`}
-                            placeholder="e.g., Units, Pieces"
-                            {...form.register(`items.${index}.unit_of_measure`)}
-                            className="mt-1"
-                          />
+                          <Select
+                            value={form.watch(`items.${index}.unit_of_measure`)}
+                            onValueChange={(value) => form.setValue(`items.${index}.unit_of_measure`, value)}
+                            disabled={unitsLoading}
+                          >
+                            <SelectTrigger className="mt-1">
+                              <SelectValue placeholder={unitsLoading ? "Loading..." : "Select unit"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {units.map((unit) => (
+                                <SelectItem key={unit.id} value={unit.name}>
+                                  {unit.name} {unit.abbreviation && `(${unit.abbreviation})`}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
 
                         <div>
