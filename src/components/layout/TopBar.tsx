@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { useRoleDisplay } from "@/hooks/useRoleDisplay";
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -25,6 +26,7 @@ export function TopBar({ onMenuClick, scrolled, onCreateRequest }: TopBarProps) 
   const navigate = useNavigate();
   const location = useLocation();
   const { profile, role, loading } = useRole();
+  const { getRoleDisplayName, getRoleBadgeColor } = useRoleDisplay();
   
   const isAssetsPage = location.pathname.startsWith('/assets');
   
@@ -35,34 +37,6 @@ export function TopBar({ onMenuClick, scrolled, onCreateRequest }: TopBarProps) 
   const handleLogout = async () => {
     await authService.logout();
     navigate('/login');
-  };
-
-  const getRoleDisplayName = (roleName: string | null) => {
-    if (!roleName) return 'User';
-    const roleMap: { [key: string]: string } = {
-      'super_admin': 'Super Admin',
-      'admin': 'Admin',
-      'finance_manager': 'Finance Manager',
-      'asset_manager': 'Asset Manager',
-      'procurement_manager': 'Procurement Manager',
-      'department_head': 'Department Head',
-      'employee': 'Employee'
-    };
-    return roleMap[roleName] || roleName;
-  };
-
-  const getRoleBadgeColor = (roleName: string | null) => {
-    if (!roleName) return 'default';
-    const colorMap: { [key: string]: string } = {
-      'super_admin': 'bg-purple-100 text-purple-800 hover:bg-purple-100',
-      'admin': 'bg-blue-100 text-blue-800 hover:bg-blue-100',
-      'finance_manager': 'bg-green-100 text-green-800 hover:bg-green-100',
-      'asset_manager': 'bg-orange-100 text-orange-800 hover:bg-orange-100',
-      'procurement_manager': 'bg-cyan-100 text-cyan-800 hover:bg-cyan-100',
-      'department_head': 'bg-indigo-100 text-indigo-800 hover:bg-indigo-100',
-      'employee': 'bg-gray-100 text-gray-800 hover:bg-gray-100'
-    };
-    return colorMap[roleName] || 'default';
   };
 
   return (

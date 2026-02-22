@@ -14,6 +14,7 @@ import { authService } from "@/services/auth";
 import { useRole } from "@/hooks/useRole";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useRoleDisplay } from "@/hooks/useRoleDisplay";
 
 interface UserDetails {
   first_name: string;
@@ -30,6 +31,7 @@ export function Sidebar({ isOpen, onOpenChange }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { profile, role } = useRole();
+  const { getRoleDisplayName, getRoleBadgeColor } = useRoleDisplay();
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
 
   useEffect(() => {
@@ -48,34 +50,6 @@ export function Sidebar({ isOpen, onOpenChange }: SidebarProps) {
   const handleLogout = () => {
     authService.logout();
     navigate("/login");
-  };
-
-  const getRoleDisplayName = (roleName: string | null) => {
-    if (!roleName) return 'User';
-    const roleMap: { [key: string]: string } = {
-      'super_admin': 'Super Admin',
-      'admin': 'Admin',
-      'finance_manager': 'Finance Manager',
-      'asset_manager': 'Asset Manager',
-      'procurement_manager': 'Procurement Manager',
-      'department_head': 'Department Head',
-      'employee': 'Employee'
-    };
-    return roleMap[roleName] || roleName;
-  };
-
-  const getRoleBadgeColor = (roleName: string | null) => {
-    if (!roleName) return 'default';
-    const colorMap: { [key: string]: string } = {
-      'super_admin': 'bg-purple-100 text-purple-800',
-      'admin': 'bg-blue-100 text-blue-800',
-      'finance_manager': 'bg-green-100 text-green-800',
-      'asset_manager': 'bg-orange-100 text-orange-800',
-      'procurement_manager': 'bg-cyan-100 text-cyan-800',
-      'department_head': 'bg-indigo-100 text-indigo-800',
-      'employee': 'bg-gray-100 text-gray-800'
-    };
-    return colorMap[roleName] || 'default';
   };
 
   return (
