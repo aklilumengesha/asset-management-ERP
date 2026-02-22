@@ -1,5 +1,7 @@
 
-export type GRNStatus = 'DRAFT' | 'SUBMITTED' | 'CHECKED' | 'AUTHORIZED' | 'REJECTED';
+// GRN Status is now dynamic and loaded from database
+// Common status codes: 'DRAFT', 'SUBMITTED', 'CHECKED', 'AUTHORIZED', 'REJECTED', 'CANCELLED', 'PARTIALLY_RECEIVED', 'COMPLETED'
+export type GRNStatus = string;
 
 export interface GRNItem {
   id: string;
