@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -20,6 +21,7 @@ import { format } from "date-fns";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { X } from "lucide-react";
 import type { CreatePOForm } from "@/pages/purchase-orders/types";
+import { usePaymentTerms } from "@/hooks/usePaymentTerms";
 
 interface CreatePOSidePanelProps {
   open: boolean;
@@ -29,6 +31,7 @@ interface CreatePOSidePanelProps {
 
 export function CreatePOSidePanel({ open, onClose, onSuccess }: CreatePOSidePanelProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { terms, loading: termsLoading, getDefaultTerm } = usePaymentTerms();
 
   // Define form with default values
   const form = useForm<CreatePOForm>({
@@ -37,7 +40,7 @@ export function CreatePOSidePanel({ open, onClose, onSuccess }: CreatePOSidePane
       supplier_name: "",
       supplier_tin: "",
       supplier_address: "",
-      payment_terms: "Net 30",
+      payment_terms: getDefaultTerm()?.name || "Net 30",
       advance_payment: 0,
       delivery_terms: "Standard Shipping",
       delivery_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
@@ -241,9 +244,20 @@ export function CreatePOSidePanel({ open, onClose, onSuccess }: CreatePOSidePane
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Payment Terms</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., Net 30" {...field} />
-                        </FormControl>
+                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={termsLoading}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={termsLoading ? "Loading terms..." : "Select payment terms"} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {terms.map((term) => (
+                              <SelectItem key={term.id} value={term.name}>
+                                {term.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
