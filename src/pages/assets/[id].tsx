@@ -65,13 +65,13 @@ const mockAssetDetail = {
     {
       id: 1,
       name: "Purchase Invoice",
-      type: "invoice",
+      type: "INVOICE",
       date: "2023-01-15"
     },
     {
       id: 2,
       name: "Warranty Card",
-      type: "warranty",
+      type: "WARRANTY",
       date: "2023-01-15"
     }
   ]
