@@ -1,6 +1,7 @@
 
 export type MaintenanceStatus = "Scheduled" | "In Progress" | "Completed";
-export type MaintenanceType = "Internal" | "External";
+// MaintenanceType is now dynamic - use code from maintenance_types table
+export type MaintenanceType = string;
 
 export interface MaintenanceTask {
   id: string;

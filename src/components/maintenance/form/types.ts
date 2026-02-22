@@ -7,7 +7,7 @@ export const maintenanceFormSchema = z.object({
   location: z.string().min(1, "Location is required"),
   scheduledDate: z.date(),
   cost: z.number().min(0),
-  maintenanceType: z.enum(["Internal", "External"]),
+  maintenanceType: z.string().min(1, "Maintenance type is required"),
   vendor: z.string().optional(),
   status: z.enum(["Scheduled", "In Progress", "Completed"]).default("Scheduled"),
   notes: z.array(z.string()).default([]),
