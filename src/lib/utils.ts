@@ -15,11 +15,11 @@ export function formatDate(dateString: string) {
   });
 }
 
-export function formatCurrency(value: number): string {
+export function formatCurrency(value: number, currencyCode: string = 'USD', decimalPlaces: number = 2): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
+    currency: currencyCode,
+    minimumFractionDigits: decimalPlaces,
+    maximumFractionDigits: decimalPlaces
   }).format(value);
 }

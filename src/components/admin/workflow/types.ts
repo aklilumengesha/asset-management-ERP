@@ -1,5 +1,8 @@
 
-export type Currency = 'USD' | 'GBP' | 'ETB' | 'KES' | 'AED' | 'ZAR';
+// Currency type is now flexible to support any ISO 4217 currency code
+// Previously: 'USD' | 'GBP' | 'ETB' | 'KES' | 'AED' | 'ZAR'
+// Now supports all currencies from the database
+export type Currency = string;
 
 export type WorkflowRule = {
   id: string;

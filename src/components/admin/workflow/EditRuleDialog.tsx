@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { WorkflowRule, Currency } from "./types";
+import { useCurrencyCodes } from "@/hooks/useCurrencyCodes";
 
 interface EditRuleDialogProps {
   open: boolean;
@@ -15,16 +16,9 @@ interface EditRuleDialogProps {
   onSave: () => void;
 }
 
-const currencies: { value: Currency; label: string }[] = [
-  { value: 'USD', label: 'US Dollar (USD)' },
-  { value: 'GBP', label: 'British Pound (GBP)' },
-  { value: 'ETB', label: 'Ethiopian Birr (ETB)' },
-  { value: 'KES', label: 'Kenyan Shilling (KES)' },
-  { value: 'AED', label: 'UAE Dirham (AED)' },
-  { value: 'ZAR', label: 'South African Rand (ZAR)' },
-];
-
 export function EditRuleDialog({ open, onOpenChange, rule, onRuleChange, onSave }: EditRuleDialogProps) {
+  const { getCurrenciesAsOptions, loading: currenciesLoading } = useCurrencyCodes();
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -58,12 +52,13 @@ export function EditRuleDialog({ open, onOpenChange, rule, onRuleChange, onSave 
                   costRange: { ...rule.costRange, currency: value }
                 } : null)
               }
+              disabled={currenciesLoading}
             >
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder={currenciesLoading ? "Loading currencies..." : "Select currency"} />
               </SelectTrigger>
               <SelectContent>
-                {currencies.map((currency) => (
+                {getCurrenciesAsOptions().map((currency) => (
                   <SelectItem key={currency.value} value={currency.value}>
                     {currency.label}
                   </SelectItem>
