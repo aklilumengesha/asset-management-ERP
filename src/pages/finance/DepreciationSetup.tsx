@@ -9,14 +9,11 @@ import { CategoriesList } from "@/components/finance/depreciation/CategoriesList
 import { CategoryDetails } from "@/components/finance/depreciation/CategoryDetails";
 import { AssetCategory, TaxCategory } from "@/components/finance/depreciation/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  IFRS_CLASSIFICATIONS,
-  IFRS_CATEGORIES,
-  TAX_CATEGORIES
-} from "@/components/finance/depreciation/constants";
+import { useDepreciationCategories } from "@/hooks/useDepreciationCategories";
 
 export default function DepreciationSetup() {
   const { toast } = useToast();
+  const { ifrsClassifications, ifrsCategories, taxCategories, loading } = useDepreciationCategories();
   const [activeTab, setActiveTab] = useState<"categories" | "mappings">("categories");
   const [categories, setCategories] = useState<AssetCategory[]>([
     { 
@@ -30,9 +27,9 @@ export default function DepreciationSetup() {
       taxYears: 2,
       taxResidualValue: 5, // 5% residual value
       taxStartDate: new Date(),
-      ifrsClassification: IFRS_CLASSIFICATIONS[0],
-      ifrsCategory: IFRS_CATEGORIES[0],
-      taxCategory: TAX_CATEGORIES[0]
+      ifrsClassification: ifrsClassifications[0],
+      ifrsCategory: ifrsCategories[0],
+      taxCategory: taxCategories[0]
     },
     { 
       id: "2", 
@@ -63,7 +60,7 @@ export default function DepreciationSetup() {
   const [editingCategory, setEditingCategory] = useState<AssetCategory | undefined>();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [pendingChanges, setPendingChanges] = useState<Partial<AssetCategory>>({});
-  const [customTaxCategories, setCustomTaxCategories] = useState<TaxCategory[]>(TAX_CATEGORIES);
+  const [customTaxCategories, setCustomTaxCategories] = useState<TaxCategory[]>([]);
 
   const handleTaxRateChange = (code: string, newRate: string) => {
     const rate = parseFloat(newRate) / 100; // Convert percentage to decimal
@@ -83,7 +80,7 @@ export default function DepreciationSetup() {
   };
 
   const handleResetTaxRate = (code: string) => {
-    const originalCategory = TAX_CATEGORIES.find(cat => cat.code === code);
+    const originalCategory = taxCategories.find(cat => cat.code === code);
     if (originalCategory) {
       setCustomTaxCategories(prevCategories =>
         prevCategories.map(cat =>
@@ -98,6 +95,11 @@ export default function DepreciationSetup() {
       });
     }
   };
+
+  // Initialize custom tax categories from hook data
+  if (customTaxCategories.length === 0 && taxCategories.length > 0) {
+    setCustomTaxCategories(taxCategories);
+  }
 
   const handleSave = (categoryData: Partial<AssetCategory>) => {
     if (editingCategory) {
@@ -231,7 +233,10 @@ export default function DepreciationSetup() {
                   These are the main asset classes as defined by International Financial Reporting Standards.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {IFRS_CLASSIFICATIONS.map((classification) => (
+                  {loading ? (
+                    <p className="text-muted-foreground">Loading...</p>
+                  ) : (
+                    ifrsClassifications.map((classification) => (
                     <Card key={classification.class} className="p-4 border-blue-200">
                       <h4 className="font-medium">{classification.name}</h4>
                       <p className="text-sm text-muted-foreground">{classification.description}</p>
@@ -239,7 +244,8 @@ export default function DepreciationSetup() {
                         Class: {classification.class}
                       </div>
                     </Card>
-                  ))}
+                    ))
+                  )}
                 </div>
               </div>
 
@@ -252,7 +258,10 @@ export default function DepreciationSetup() {
                   More specific categories that fall under each IFRS classification. Each asset must be assigned to one of these categories.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {IFRS_CATEGORIES.map((category) => (
+                  {loading ? (
+                    <p className="text-muted-foreground">Loading...</p>
+                  ) : (
+                    ifrsCategories.map((category) => (
                     <Card key={category.code} className="p-4 border-green-200">
                       <h4 className="font-medium">{category.name}</h4>
                       <p className="text-sm text-muted-foreground">{category.description}</p>
@@ -265,7 +274,8 @@ export default function DepreciationSetup() {
                         </span>
                       </div>
                     </Card>
-                  ))}
+                    ))
+                  )}
                 </div>
               </div>
 
@@ -278,7 +288,10 @@ export default function DepreciationSetup() {
                   Categories defined by local tax authorities. Customize these rates to match your jurisdiction's requirements.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {customTaxCategories.map((category) => (
+                  {loading ? (
+                    <p className="text-muted-foreground">Loading...</p>
+                  ) : (
+                    customTaxCategories.map((category) => (
                     <Card key={category.code} className="p-4 border-purple-200">
                       <h4 className="font-medium">{category.name}</h4>
                       <p className="text-sm text-muted-foreground">{category.description}</p>
@@ -311,7 +324,8 @@ export default function DepreciationSetup() {
                         )}
                       </div>
                     </Card>
-                  ))}
+                    ))
+                  )}
                 </div>
               </div>
             </div>

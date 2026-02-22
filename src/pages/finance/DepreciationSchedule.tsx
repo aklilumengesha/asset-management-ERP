@@ -13,22 +13,23 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileDown } from "lucide-react";
 import { DepreciationAsset } from "@/components/finance/depreciation/types";
-import { IFRS_CLASSIFICATIONS, IFRS_CATEGORIES, TAX_CATEGORIES } from "@/components/finance/depreciation/constants";
+import { useDepreciationCategories } from "@/hooks/useDepreciationCategories";
 
 export default function DepreciationSchedule() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"ifrs" | "tax">("ifrs");
+  const { ifrsClassifications, ifrsCategories, taxCategories, loading } = useDepreciationCategories();
 
   // Example data using our defined types
-  const currentPeriodData: DepreciationAsset[] = [
+  const currentPeriodData: DepreciationAsset[] = loading ? [] : [
     {
       assetId: "AST001",
       assetName: "Computer Software License",
       cost: 1500,
       startDate: "2024-01-01",
-      ifrsClass: IFRS_CLASSIFICATIONS[1], // INT class
-      ifrsCat: IFRS_CATEGORIES[1], // COMP_SOFT category
-      taxCategory: TAX_CATEGORIES[0], // COMP_EQUIP category
+      ifrsClass: ifrsClassifications[1] || { class: 'INT', name: 'Intangible Assets', description: '' }, // INT class
+      ifrsCat: ifrsCategories[1] || { code: 'COMP_SOFT', name: 'Computer Software', class: 'INT', description: '' }, // COMP_SOFT category
+      taxCategory: taxCategories[0] || { code: 'COMP_EQUIP', name: 'Computer Equipment', description: '', depreciationRate: 0.25 }, // COMP_EQUIP category
       ifrsMethod: "Straight-Line",
       taxMethod: "Declining Balance",
       ifrsMonthlyDep: 41.67,
@@ -43,9 +44,9 @@ export default function DepreciationSchedule() {
       assetName: "Office Printer",
       cost: 3000,
       startDate: "2024-01-01",
-      ifrsClass: IFRS_CLASSIFICATIONS[0], // PPE class
-      ifrsCat: IFRS_CATEGORIES[2], // OFF_EQUIP category
-      taxCategory: TAX_CATEGORIES[1], // OFF_EQUIP category
+      ifrsClass: ifrsClassifications[0] || { class: 'PPE', name: 'Property, Plant & Equipment', description: '' }, // PPE class
+      ifrsCat: ifrsCategories[2] || { code: 'OFF_EQUIP', name: 'Office Equipment', class: 'PPE', description: '' }, // OFF_EQUIP category
+      taxCategory: taxCategories[1] || { code: 'OFF_EQUIP', name: 'Office Equipment', description: '', depreciationRate: 0.20 }, // OFF_EQUIP category
       ifrsMethod: "Straight-Line",
       taxMethod: "Straight-Line",
       ifrsMonthlyDep: 62.50,

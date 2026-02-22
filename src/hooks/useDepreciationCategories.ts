@@ -1,7 +1,13 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import type { 
+  IFRSClassification as ComponentIFRSClassification,
+  IFRSCategory as ComponentIFRSCategory,
+  TaxCategory as ComponentTaxCategory
+} from '@/components/finance/depreciation/types';
 
-export interface IFRSClassification {
+// Database types (snake_case from Supabase)
+interface DBIFRSClassification {
   id: string;
   class_code: string;
   name: string;
@@ -12,7 +18,7 @@ export interface IFRSClassification {
   updated_at: string;
 }
 
-export interface IFRSCategory {
+interface DBIFRSCategory {
   id: string;
   code: string;
   name: string;
@@ -24,7 +30,7 @@ export interface IFRSCategory {
   updated_at: string;
 }
 
-export interface TaxCategory {
+interface DBTaxCategory {
   id: string;
   code: string;
   name: string;
@@ -38,9 +44,9 @@ export interface TaxCategory {
 }
 
 export function useDepreciationCategories() {
-  const [ifrsClassifications, setIFRSClassifications] = useState<IFRSClassification[]>([]);
-  const [ifrsCategories, setIFRSCategories] = useState<IFRSCategory[]>([]);
-  const [taxCategories, setTaxCategories] = useState<TaxCategory[]>([]);
+  const [ifrsClassifications, setIFRSClassifications] = useState<ComponentIFRSClassification[]>([]);
+  const [ifrsCategories, setIFRSCategories] = useState<ComponentIFRSCategory[]>([]);
+  const [taxCategories, setTaxCategories] = useState<ComponentTaxCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -76,31 +82,53 @@ export function useDepreciationCategories() {
       if (categoriesResult.error) throw categoriesResult.error;
       if (taxResult.error) throw taxResult.error;
 
-      setIFRSClassifications(classificationsResult.data || []);
-      setIFRSCategories(categoriesResult.data || []);
-      setTaxCategories(taxResult.data || []);
+      // Transform database types to component types (snake_case to camelCase)
+      const transformedClassifications: ComponentIFRSClassification[] = (classificationsResult.data || []).map((item: DBIFRSClassification) => ({
+        class: item.class_code,
+        name: item.name,
+        description: item.description || ''
+      }));
+
+      const transformedCategories: ComponentIFRSCategory[] = (categoriesResult.data || []).map((item: DBIFRSCategory) => ({
+        code: item.code,
+        name: item.name,
+        class: item.class_code,
+        description: item.description || ''
+      }));
+
+      const transformedTaxCategories: ComponentTaxCategory[] = (taxResult.data || []).map((item: DBTaxCategory) => ({
+        code: item.code,
+        name: item.name,
+        description: item.description || '',
+        depreciationRate: item.depreciation_rate,
+        isCustom: item.is_custom
+      }));
+
+      setIFRSClassifications(transformedClassifications);
+      setIFRSCategories(transformedCategories);
+      setTaxCategories(transformedTaxCategories);
     } catch (err) {
       console.error('Error fetching depreciation categories:', err);
       setError(err as Error);
       
-      // Fallback to hardcoded data if database fetch fails
+      // Fallback to hardcoded data if database fetch fails (transformed to component types)
       setIFRSClassifications([
-        { id: '1', class_code: 'PPE', name: 'Property, Plant & Equipment', description: 'Tangible assets used in operations', is_active: true, display_order: 1, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-        { id: '2', class_code: 'INT', name: 'Intangible Assets', description: 'Non-physical assets like software and licenses', is_active: true, display_order: 2, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-        { id: '3', class_code: 'INV', name: 'Investment Property', description: 'Property held for rental income or capital appreciation', is_active: true, display_order: 3, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+        { class: 'PPE', name: 'Property, Plant & Equipment', description: 'Tangible assets used in operations' },
+        { class: 'INT', name: 'Intangible Assets', description: 'Non-physical assets like software and licenses' },
+        { class: 'INV', name: 'Investment Property', description: 'Property held for rental income or capital appreciation' },
       ]);
       
       setIFRSCategories([
-        { id: '1', code: 'COMP_HARD', name: 'Computer Hardware', class_code: 'PPE', description: 'Computing equipment and accessories', is_active: true, display_order: 1, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-        { id: '2', code: 'COMP_SOFT', name: 'Computer Software', class_code: 'INT', description: 'Software licenses and applications', is_active: true, display_order: 2, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-        { id: '3', code: 'OFF_EQUIP', name: 'Office Equipment', class_code: 'PPE', description: 'General office equipment', is_active: true, display_order: 3, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-        { id: '4', code: 'BLDG', name: 'Buildings', class_code: 'PPE', description: 'Commercial buildings and structures', is_active: true, display_order: 4, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+        { code: 'COMP_HARD', name: 'Computer Hardware', class: 'PPE', description: 'Computing equipment and accessories' },
+        { code: 'COMP_SOFT', name: 'Computer Software', class: 'INT', description: 'Software licenses and applications' },
+        { code: 'OFF_EQUIP', name: 'Office Equipment', class: 'PPE', description: 'General office equipment' },
+        { code: 'BLDG', name: 'Buildings', class: 'PPE', description: 'Commercial buildings and structures' },
       ]);
       
       setTaxCategories([
-        { id: '1', code: 'COMP_EQUIP', name: 'Computer Equipment', description: 'Computers and related equipment', depreciation_rate: 0.25, is_custom: false, is_active: true, display_order: 1, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-        { id: '2', code: 'OFF_EQUIP', name: 'Office Equipment', description: 'General office equipment', depreciation_rate: 0.20, is_custom: false, is_active: true, display_order: 2, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-        { id: '3', code: 'BLDG', name: 'Buildings', description: 'Commercial buildings', depreciation_rate: 0.05, is_custom: false, is_active: true, display_order: 3, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+        { code: 'COMP_EQUIP', name: 'Computer Equipment', description: 'Computers and related equipment', depreciationRate: 0.25, isCustom: false },
+        { code: 'OFF_EQUIP', name: 'Office Equipment', description: 'General office equipment', depreciationRate: 0.20, isCustom: false },
+        { code: 'BLDG', name: 'Buildings', description: 'Commercial buildings', depreciationRate: 0.05, isCustom: false },
       ]);
     } finally {
       setLoading(false);
