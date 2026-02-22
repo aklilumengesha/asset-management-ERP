@@ -16,6 +16,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { MaintenanceDetailDialog } from "./MaintenanceDetailDialog";
 import { useMaintenanceTypes } from "@/hooks/useMaintenanceTypes";
+import { useMaintenanceStatuses } from "@/hooks/useMaintenanceStatuses";
 
 const mockTasks: MaintenanceTask[] = [
   {
@@ -60,21 +61,23 @@ const mockTasks: MaintenanceTask[] = [
 
 export function MaintenanceList() {
   const { types: maintenanceTypes } = useMaintenanceTypes();
+  const { statuses, getStatusColors } = useMaintenanceStatuses();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [selectedTask, setSelectedTask] = useState<MaintenanceTask | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
-  const getStatusIcon = (status: MaintenanceTask['status']) => {
-    switch (status) {
-      case 'Scheduled':
-        return <Clock className="h-4 w-4 text-yellow-500" />;
-      case 'In Progress':
-        return <PlayCircle className="h-4 w-4 text-blue-500" />;
-      case 'Completed':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
+  const getStatusIcon = (status: string) => {
+    const statusUpper = status.toUpperCase();
+    if (statusUpper.includes('SCHEDULED') || statusUpper.includes('PENDING')) {
+      return <Clock className="h-4 w-4 text-yellow-500" />;
+    } else if (statusUpper.includes('PROGRESS') || statusUpper.includes('HOLD')) {
+      return <PlayCircle className="h-4 w-4 text-blue-500" />;
+    } else if (statusUpper.includes('COMPLETED')) {
+      return <CheckCircle className="h-4 w-4 text-green-500" />;
     }
+    return <FileText className="h-4 w-4 text-gray-500" />;
   };
 
   const handleComplete = (taskId: string) => {
@@ -114,9 +117,11 @@ export function MaintenanceList() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="Scheduled">Scheduled</SelectItem>
-            <SelectItem value="In Progress">In Progress</SelectItem>
-            <SelectItem value="Completed">Completed</SelectItem>
+            {statuses.map((status) => (
+              <SelectItem key={status.id} value={status.name}>
+                {status.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Select

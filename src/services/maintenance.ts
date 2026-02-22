@@ -8,7 +8,7 @@ export interface Maintenance {
   task_type: string;
   description: string;
   scheduled_date: string;
-  status: 'incomplete' | 'in_progress' | 'completed';
+  status: string; // Now flexible to support any status from database
   assigned_to: number;
   priority: string; // Now flexible to support any priority from database
   company: number;

@@ -9,7 +9,7 @@ export const maintenanceFormSchema = z.object({
   cost: z.number().min(0),
   maintenanceType: z.string().min(1, "Maintenance type is required"),
   vendor: z.string().optional(),
-  status: z.enum(["Scheduled", "In Progress", "Completed"]).default("Scheduled"),
+  status: z.string().default("SCHEDULED"), // Now flexible to support any status
   notes: z.array(z.string()).default([]),
   attachments: z.array(z.object({
     id: z.string(),
