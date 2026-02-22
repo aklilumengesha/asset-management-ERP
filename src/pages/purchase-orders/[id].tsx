@@ -119,6 +119,10 @@ export default function PurchaseOrderDetail() {
                   <p className="mt-1">{purchaseOrder.payment_terms || "Standard 30 days"}</p>
                 </div>
                 <div>
+                  <h3 className="font-medium text-gray-600">Delivery Terms</h3>
+                  <p className="mt-1">{purchaseOrder.delivery_terms || "Standard Shipping"}</p>
+                </div>
+                <div>
                   <h3 className="font-medium text-gray-600">Delivery Address</h3>
                   <p className="mt-1">{purchaseOrder.delivery_address || "Company main address"}</p>
                 </div>
