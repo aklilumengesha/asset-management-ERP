@@ -10,6 +10,7 @@ import { GRN } from "@/types/grn";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
+import { useGRNStatuses } from "@/hooks/useGRNStatuses";
 
 export default function GRNDetail() {
   const { id } = useParams();
@@ -17,6 +18,7 @@ export default function GRNDetail() {
   const [grn, setGrn] = useState<GRN | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
+  const { getStatusByCode } = useGRNStatuses();
 
   useEffect(() => {
     const fetchGRN = async () => {
@@ -113,15 +115,17 @@ export default function GRNDetail() {
     }
   };
 
-  const getStatusBadgeColor = (status: GRN['status']) => {
-    const statusColors = {
-      DRAFT: "bg-gray-500/10 text-gray-500",
-      SUBMITTED: "bg-blue-500/10 text-blue-500",
-      CHECKED: "bg-yellow-500/10 text-yellow-500",
-      AUTHORIZED: "bg-green-500/10 text-green-500",
-      REJECTED: "bg-red-500/10 text-red-500",
-    };
-    return statusColors[status] || statusColors.DRAFT;
+  const getStatusBadge = (statusCode: GRN['status']) => {
+    const status = getStatusByCode(statusCode);
+    
+    if (!status) {
+      return <Badge className="bg-gray-500/10 text-gray-500">{statusCode}</Badge>;
+    }
+
+    // Use a lighter version of the badge class for detail view
+    const lightClass = status.badgeClass?.replace('bg-', 'bg-') + '/10 text-' + status.badgeClass?.replace('bg-', '');
+    
+    return <Badge className={lightClass || 'bg-gray-500/10 text-gray-500'}>{status.name}</Badge>;
   };
 
   const renderActionButtons = () => {
@@ -222,9 +226,7 @@ export default function GRNDetail() {
             </p>
           </div>
           <div className="flex items-center gap-4">
-            <Badge className={getStatusBadgeColor(grn.status)}>
-              {grn.status}
-            </Badge>
+            {getStatusBadge(grn.status)}
             {renderActionButtons()}
           </div>
         </CardHeader>

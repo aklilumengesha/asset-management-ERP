@@ -13,6 +13,7 @@ import { Eye, CheckCircle, XCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { GRN } from "@/types/grn";
 import { formatDate } from "@/lib/utils";
+import { useGRNStatuses } from "@/hooks/useGRNStatuses";
 
 interface GRNTableProps {
   grns: GRN[];
@@ -22,23 +23,6 @@ interface GRNTableProps {
   onPageChange: (page: number) => void;
 }
 
-const getStatusBadge = (status: GRN['status']) => {
-  const statusConfig = {
-    DRAFT: { class: "bg-gray-500", label: "Draft" },
-    SUBMITTED: { class: "bg-blue-500", label: "Submitted" },
-    CHECKED: { class: "bg-yellow-500", label: "Checked" },
-    AUTHORIZED: { class: "bg-green-500", label: "Authorized" },
-    REJECTED: { class: "bg-red-500", label: "Rejected" }
-  };
-
-  const config = statusConfig[status];
-  return (
-    <Badge className={config.class}>
-      {config.label}
-    </Badge>
-  );
-};
-
 export function GRNTable({
   grns,
   isLoading,
@@ -47,6 +31,21 @@ export function GRNTable({
   onPageChange
 }: GRNTableProps) {
   const navigate = useNavigate();
+  const { statuses, getStatusByCode } = useGRNStatuses();
+  
+  const getStatusBadge = (statusCode: GRN['status']) => {
+    const status = getStatusByCode(statusCode);
+    
+    if (!status) {
+      return <Badge className="bg-gray-500">Unknown</Badge>;
+    }
+
+    return (
+      <Badge className={status.badgeClass || 'bg-gray-500'}>
+        {status.name}
+      </Badge>
+    );
+  };
   
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;

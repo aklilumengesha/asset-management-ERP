@@ -10,6 +10,7 @@ import { GRN } from "@/types/grn";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useGRNStatuses } from "@/hooks/useGRNStatuses";
 
 // Dummy data for development
 const dummyGRNs: GRN[] = [
@@ -90,6 +91,7 @@ export default function GRNList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const { statuses, loading: statusesLoading } = useGRNStatuses();
   const ITEMS_PER_PAGE = 10;
 
   const { data: grns, isLoading } = useQuery({
@@ -151,17 +153,18 @@ export default function GRNList() {
                   defaultValue="all"
                   onValueChange={setFilterStatus}
                   value={filterStatus}
+                  disabled={statusesLoading}
                 >
                   <SelectTrigger className="w-32 md:w-40">
-                    <SelectValue placeholder="Status" />
+                    <SelectValue placeholder={statusesLoading ? "Loading..." : "Status"} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="DRAFT">Draft</SelectItem>
-                    <SelectItem value="SUBMITTED">Submitted</SelectItem>
-                    <SelectItem value="CHECKED">Checked</SelectItem>
-                    <SelectItem value="AUTHORIZED">Authorized</SelectItem>
-                    <SelectItem value="REJECTED">Rejected</SelectItem>
+                    {statuses.map((status) => (
+                      <SelectItem key={status.id} value={status.code}>
+                        {status.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
