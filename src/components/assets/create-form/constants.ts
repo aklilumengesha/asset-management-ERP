@@ -1,3 +1,9 @@
+// Condition grades are now managed dynamically in the database
+// Use the useConditionGrades hook to fetch current grades
+// See: booking/src/hooks/useConditionGrades.ts
+// Database table: condition_grades
+
+// Legacy conditionGrades export removed - grades are now fully dynamic
 
 export const itCategories = [
   "Laptop",
@@ -7,13 +13,4 @@ export const itCategories = [
   "Monitor",
   "Printer",
   "Other",
-];
-
-export const conditionGrades = [
-  { value: "A", label: "A - Excellent (Like New)" },
-  { value: "B", label: "B - Good (Minor Wear)" },
-  { value: "C", label: "C - Fair (Visible Wear)" },
-  { value: "D", label: "D - Poor (Significant Wear)" },
-  { value: "E", label: "E - Very Poor (Barely Functional)" },
-  { value: "F", label: "F - Non-functional" },
 ];
