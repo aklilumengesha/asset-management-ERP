@@ -47,17 +47,18 @@ export function getTagColor(tag: string) {
 }
 
 // Add utility function for priority colors
+// Note: For components, prefer using usePriorityLevels hook's getPriorityColors()
 export function getPriorityColor(priority: string) {
-  switch (priority) {
-    case "Critical":
-      return "bg-red-100 text-red-700 border border-red-200";
-    case "High":
-      return "bg-orange-100 text-orange-700 border border-orange-200";
-    case "Medium":
-      return "bg-yellow-100 text-yellow-700 border border-yellow-200";
-    case "Low":
-      return "bg-green-100 text-green-700 border border-green-200";
-    default:
-      return "bg-gray-100 text-gray-700 border border-gray-200";
-  }
+  const priorityUpper = priority.toUpperCase();
+  
+  // Map priority codes/names to color classes
+  const colorMap: Record<string, string> = {
+    'CRITICAL': "bg-red-100 text-red-700 border border-red-200",
+    'HIGH': "bg-red-100 text-red-700 border border-red-200",
+    'MEDIUM': "bg-amber-100 text-amber-700 border border-amber-200",
+    'LOW': "bg-green-100 text-green-700 border border-green-200",
+    'PLANNING': "bg-blue-100 text-blue-700 border border-blue-200",
+  };
+  
+  return colorMap[priorityUpper] || "bg-gray-100 text-gray-700 border border-gray-200";
 }

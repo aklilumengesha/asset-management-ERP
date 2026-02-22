@@ -10,7 +10,7 @@ export interface Maintenance {
   scheduled_date: string;
   status: 'incomplete' | 'in_progress' | 'completed';
   assigned_to: number;
-  priority: 'low' | 'medium' | 'high';
+  priority: string; // Now flexible to support any priority from database
   company: number;
   completed_at: string;
   cost: string;

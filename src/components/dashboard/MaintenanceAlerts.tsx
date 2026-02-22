@@ -5,6 +5,7 @@ import { AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMaintenanceAlerts } from "@/hooks/useMaintenanceAlerts";
+import { usePriorityLevels } from "@/hooks/usePriorityLevels";
 import {
   Table,
   TableBody,
@@ -17,6 +18,7 @@ import {
 export function MaintenanceAlerts() {
   const navigate = useNavigate();
   const { alerts, loading, error } = useMaintenanceAlerts(5);
+  const { getPriorityColors } = usePriorityLevels();
   
   return (
     <Card className="border rounded-lg">
@@ -65,11 +67,10 @@ export function MaintenanceAlerts() {
                   <TableCell>{alert.dueDate}</TableCell>
                   <TableCell>
                     <span className={`px-2 py-1 rounded-full text-xs ${
-                      alert.priority === 'high' 
-                        ? 'bg-red-100 text-red-800' 
-                        : alert.priority === 'medium'
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-blue-100 text-blue-800'
+                      (() => {
+                        const { color, bgColor } = getPriorityColors(alert.priority);
+                        return `${color} ${bgColor}`;
+                      })()
                     }`}>
                       {alert.priority}
                     </span>

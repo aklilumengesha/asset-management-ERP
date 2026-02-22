@@ -5,7 +5,7 @@ export interface MaintenanceAlert {
   id: string;
   asset: string;
   dueDate: string;
-  priority: 'high' | 'medium' | 'low';
+  priority: string; // Now flexible to support any priority from database
 }
 
 export function useMaintenanceAlerts(limit: number = 5) {

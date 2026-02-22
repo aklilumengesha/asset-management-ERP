@@ -10,6 +10,7 @@ import { WorkflowInstance, ApprovalStatus } from "./types";
 import { useToast } from "@/components/ui/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { usePriorityLevels } from "@/hooks/usePriorityLevels";
 
 // Mock data - replace with actual API call
 const mockPendingApprovals: WorkflowInstance[] = [
@@ -124,14 +125,12 @@ function ApprovalStatusBadge({ status }: ApprovalActionProps) {
   );
 }
 
-function PriorityBadge({ priority }: { priority: string }) {
-  const variants: Record<string, { color: string, bgColor: string }> = {
-    "High": { color: "text-red-600", bgColor: "bg-red-100" },
-    "Medium": { color: "text-amber-600", bgColor: "bg-amber-100" },
-    "Low": { color: "text-green-600", bgColor: "bg-green-100" }
-  };
+function PriorityBadge({ priority }: { priority: string | undefined }) {
+  const { getPriorityColors } = usePriorityLevels();
   
-  const { color, bgColor } = variants[priority] || { color: "text-gray-600", bgColor: "bg-gray-100" };
+  if (!priority) return null;
+  
+  const { color, bgColor } = getPriorityColors(priority);
   
   return (
     <span className={`px-2 py-1 rounded-full text-xs font-medium ${color} ${bgColor}`}>

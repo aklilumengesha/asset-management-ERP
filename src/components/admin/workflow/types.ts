@@ -34,7 +34,7 @@ export type WorkflowInstance = {
   currentStep: number;
   status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'REJECTED';
   requester?: string;
-  priority?: 'High' | 'Medium' | 'Low';
+  priority?: string; // Now flexible to support any priority from database
   createdAt: Date;
   dueDate?: Date;
   approvalSteps: {
