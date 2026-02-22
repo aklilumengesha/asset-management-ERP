@@ -22,6 +22,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { X } from "lucide-react";
 import type { CreatePOForm } from "@/pages/purchase-orders/types";
 import { usePaymentTerms } from "@/hooks/usePaymentTerms";
+import { useDeliveryTerms } from "@/hooks/useDeliveryTerms";
 
 interface CreatePOSidePanelProps {
   open: boolean;
@@ -32,6 +33,7 @@ interface CreatePOSidePanelProps {
 export function CreatePOSidePanel({ open, onClose, onSuccess }: CreatePOSidePanelProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { terms, loading: termsLoading, getDefaultTerm } = usePaymentTerms();
+  const { terms: deliveryTerms, loading: deliveryLoading, getDefaultTerm: getDefaultDeliveryTerm } = useDeliveryTerms();
 
   // Define form with default values
   const form = useForm<CreatePOForm>({
@@ -42,7 +44,7 @@ export function CreatePOSidePanel({ open, onClose, onSuccess }: CreatePOSidePane
       supplier_address: "",
       payment_terms: getDefaultTerm()?.name || "Net 30",
       advance_payment: 0,
-      delivery_terms: "Standard Shipping",
+      delivery_terms: getDefaultDeliveryTerm()?.name || "Standard Shipping",
       delivery_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
       delivery_address: "Main Office",
       notes: "",
@@ -288,9 +290,20 @@ export function CreatePOSidePanel({ open, onClose, onSuccess }: CreatePOSidePane
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Delivery Terms</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., Standard Shipping" {...field} />
-                        </FormControl>
+                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={deliveryLoading}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={deliveryLoading ? "Loading terms..." : "Select delivery terms"} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {deliveryTerms.map((term) => (
+                              <SelectItem key={term.id} value={term.name}>
+                                {term.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
