@@ -1,9 +1,8 @@
 
-import { useState } from "react";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { Label } from "@/components/ui/label";
-import { AssetCategory, IFRSClassification, IFRSCategory, TaxCategory } from "./types";
-import { IFRS_CLASSIFICATIONS, IFRS_CATEGORIES, TAX_CATEGORIES } from "./constants";
+import { AssetCategory } from "./types";
+import { useDepreciationCategories } from "@/hooks/useDepreciationCategories";
 
 interface CategorySelectionProps {
   selectedCategory?: AssetCategory;
@@ -11,39 +10,62 @@ interface CategorySelectionProps {
 }
 
 export function CategorySelection({ selectedCategory, onCategoryChange }: CategorySelectionProps) {
-  const ifrsClassOptions = IFRS_CLASSIFICATIONS.map(cls => ({
-    value: cls.class,
+  const { ifrsClassifications, ifrsCategories, taxCategories, loading } = useDepreciationCategories();
+
+  const ifrsClassOptions = ifrsClassifications.map(cls => ({
+    value: cls.class_code,
     label: cls.name
   }));
 
-  const ifrsCategoryOptions = IFRS_CATEGORIES.map(cat => ({
+  const ifrsCategoryOptions = ifrsCategories.map(cat => ({
     value: cat.code,
     label: cat.name
   }));
 
-  const taxCategoryOptions = TAX_CATEGORIES.map(cat => ({
+  const taxCategoryOptions = taxCategories.map(cat => ({
     value: cat.code,
     label: cat.name
   }));
 
   const handleIFRSClassChange = (value: string) => {
-    const classification = IFRS_CLASSIFICATIONS.find(cls => cls.class === value);
+    const classification = ifrsClassifications.find(cls => cls.class_code === value);
     if (classification) {
-      onCategoryChange({ ifrsClassification: classification });
+      onCategoryChange({ 
+        ifrsClassification: {
+          class: classification.class_code,
+          name: classification.name,
+          description: classification.description || ''
+        }
+      });
     }
   };
 
   const handleIFRSCategoryChange = (value: string) => {
-    const category = IFRS_CATEGORIES.find(cat => cat.code === value);
+    const category = ifrsCategories.find(cat => cat.code === value);
     if (category) {
-      onCategoryChange({ ifrsCategory: category });
+      onCategoryChange({ 
+        ifrsCategory: {
+          code: category.code,
+          name: category.name,
+          class: category.class_code,
+          description: category.description || ''
+        }
+      });
     }
   };
 
   const handleTaxCategoryChange = (value: string) => {
-    const category = TAX_CATEGORIES.find(cat => cat.code === value);
+    const category = taxCategories.find(cat => cat.code === value);
     if (category) {
-      onCategoryChange({ taxCategory: category });
+      onCategoryChange({ 
+        taxCategory: {
+          code: category.code,
+          name: category.name,
+          description: category.description || '',
+          depreciationRate: category.depreciation_rate,
+          isCustom: category.is_custom
+        }
+      });
     }
   };
 
