@@ -18,13 +18,15 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { useVendorCategories } from "@/hooks/useVendorCategories";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const vendorFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
   phone: z.string().min(1, "Phone number is required"),
   address: z.string().optional(),
-  category: z.string().min(1, "At least one category is required"),
+  categories: z.array(z.string()).min(1, "At least one category is required"),
 });
 
 type VendorFormData = z.infer<typeof vendorFormSchema>;
@@ -38,13 +40,15 @@ export function CreateVendorDialog({
   open,
   onOpenChange,
 }: CreateVendorDialogProps) {
+  const { categories: vendorCategories, loading: categoriesLoading } = useVendorCategories();
+  
   const form = useForm<VendorFormData>({
     defaultValues: {
       name: "",
       email: "",
       phone: "",
       address: "",
-      category: "",
+      categories: [],
     },
   });
 
@@ -58,7 +62,7 @@ export function CreateVendorDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Vendor</DialogTitle>
         </DialogHeader>
@@ -122,16 +126,50 @@ export function CreateVendorDialog({
 
             <FormField
               control={form.control}
-              name="category"
-              render={({ field }) => (
+              name="categories"
+              render={() => (
                 <FormItem>
-                  <FormLabel>Service Categories</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Enter categories (comma-separated)"
-                      {...field}
-                    />
-                  </FormControl>
+                  <div className="mb-4">
+                    <FormLabel>Service Categories</FormLabel>
+                    {categoriesLoading && (
+                      <p className="text-sm text-muted-foreground">Loading categories...</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    {vendorCategories.map((category) => (
+                      <FormField
+                        key={category.id}
+                        control={form.control}
+                        name="categories"
+                        render={({ field }) => {
+                          return (
+                            <FormItem
+                              key={category.id}
+                              className="flex flex-row items-start space-x-3 space-y-0"
+                            >
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value?.includes(category.name)}
+                                  onCheckedChange={(checked) => {
+                                    return checked
+                                      ? field.onChange([...field.value, category.name])
+                                      : field.onChange(
+                                          field.value?.filter(
+                                            (value) => value !== category.name
+                                          )
+                                        );
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                {category.name}
+                              </FormLabel>
+                            </FormItem>
+                          );
+                        }}
+                      />
+                    ))}
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
