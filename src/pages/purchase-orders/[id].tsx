@@ -147,6 +147,7 @@ export default function PurchaseOrderDetail() {
                     <tr className="border-b">
                       <th className="text-left py-2">Item</th>
                       <th className="text-left py-2">Description</th>
+                      <th className="text-left py-2">Unit</th>
                       <th className="text-right py-2">Quantity</th>
                       <th className="text-right py-2">Unit Price</th>
                       <th className="text-right py-2">Total</th>
@@ -157,13 +158,14 @@ export default function PurchaseOrderDetail() {
                       <tr key={index} className="border-b">
                         <td className="py-2">{item.name}</td>
                         <td className="py-2">{item.description}</td>
+                        <td className="py-2">{item.unit_of_measure || 'Units'}</td>
                         <td className="py-2 text-right">{item.quantity}</td>
                         <td className="py-2 text-right">${item.unit_price.toFixed(2)}</td>
                         <td className="py-2 text-right">${(item.quantity * item.unit_price).toFixed(2)}</td>
                       </tr>
                     ))}
                     <tr>
-                      <td colSpan={4} className="text-right font-bold py-2">Total:</td>
+                      <td colSpan={5} className="text-right font-bold py-2">Total:</td>
                       <td className="text-right font-bold py-2">${purchaseOrder.total_amount.toFixed(2)}</td>
                     </tr>
                   </tbody>
