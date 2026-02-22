@@ -15,6 +15,7 @@ import type { MaintenanceTask } from "@/types/maintenance";
 import { useState } from "react";
 import { toast } from "sonner";
 import { MaintenanceDetailDialog } from "./MaintenanceDetailDialog";
+import { useMaintenanceTypes } from "@/hooks/useMaintenanceTypes";
 
 const mockTasks: MaintenanceTask[] = [
   {
@@ -25,7 +26,7 @@ const mockTasks: MaintenanceTask[] = [
     location: "IT Lab - Building A",
     cost: 150.00,
     status: "Scheduled",
-    maintenanceType: "Internal",
+    maintenanceType: "INTERNAL",
     description: "Regular maintenance check",
     vendor: undefined
   },
@@ -37,7 +38,7 @@ const mockTasks: MaintenanceTask[] = [
     location: "2nd Floor Office",
     cost: 200.00,
     status: "In Progress",
-    maintenanceType: "External",
+    maintenanceType: "EXTERNAL",
     description: "Cartridge replacement and calibration",
     vendor: "PrintCare Services"
   },
@@ -49,7 +50,7 @@ const mockTasks: MaintenanceTask[] = [
     location: "Conference Room 3",
     cost: 100.00,
     status: "Completed",
-    maintenanceType: "External",
+    maintenanceType: "EXTERNAL",
     description: "Lamp replacement",
     vendor: "AV Solutions Ltd",
     completedDate: "2024-02-28",
@@ -58,8 +59,10 @@ const mockTasks: MaintenanceTask[] = [
 ];
 
 export function MaintenanceList() {
+  const { types: maintenanceTypes } = useMaintenanceTypes();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
   const [selectedTask, setSelectedTask] = useState<MaintenanceTask | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
@@ -85,8 +88,9 @@ export function MaintenanceList() {
       task.id.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === "all" || task.status === statusFilter;
+    const matchesType = typeFilter === "all" || task.maintenanceType === typeFilter;
     
-    return matchesSearch && matchesStatus;
+    return matchesSearch && matchesStatus && matchesType;
   });
 
   return (
@@ -113,6 +117,22 @@ export function MaintenanceList() {
             <SelectItem value="Scheduled">Scheduled</SelectItem>
             <SelectItem value="In Progress">In Progress</SelectItem>
             <SelectItem value="Completed">Completed</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select
+          value={typeFilter}
+          onValueChange={setTypeFilter}
+        >
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="Filter by type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            {maintenanceTypes.map((type) => (
+              <SelectItem key={type.id} value={type.code}>
+                {type.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

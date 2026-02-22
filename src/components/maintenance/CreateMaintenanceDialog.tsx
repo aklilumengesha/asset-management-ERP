@@ -17,6 +17,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import type { MaintenanceFormData } from "./form/types";
 import { toast } from "sonner";
+import { useMaintenanceTypes } from "@/hooks/useMaintenanceTypes";
 
 interface CreateMaintenanceDialogProps {
   open: boolean;
@@ -27,11 +28,13 @@ export function CreateMaintenanceDialog({
   open,
   onOpenChange,
 }: CreateMaintenanceDialogProps) {
+  const { types: maintenanceTypes, loading: typesLoading } = useMaintenanceTypes();
+  
   const form = useForm<MaintenanceFormData>({
     defaultValues: {
       assetId: "",
       description: "",
-      maintenanceType: "Internal",
+      maintenanceType: "INTERNAL",
       cost: 0,
       vendor: "",
       status: "Scheduled",
@@ -74,23 +77,18 @@ export function CreateMaintenanceDialog({
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                       className="flex flex-col space-y-1"
+                      disabled={typesLoading}
                     >
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="Internal" />
-                        </FormControl>
-                        <FormLabel className="font-normal">
-                          Internal Maintenance
-                        </FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="External" />
-                        </FormControl>
-                        <FormLabel className="font-normal">
-                          External Maintenance (Vendor)
-                        </FormLabel>
-                      </FormItem>
+                      {maintenanceTypes.map((type) => (
+                        <FormItem key={type.id} className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value={type.code} />
+                          </FormControl>
+                          <FormLabel className="font-normal">
+                            {type.name}
+                          </FormLabel>
+                        </FormItem>
+                      ))}
                     </RadioGroup>
                   </FormControl>
                 </FormItem>
