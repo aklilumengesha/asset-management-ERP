@@ -2,7 +2,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useState, useEffect } from "react";
 import {
   Form,
   FormControl,
@@ -21,7 +20,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useInvitations } from "@/hooks/useInvitations";
-import { supabase } from "@/integrations/supabase/client";
+import { useRoles } from "@/hooks/useRoles";
+import { useDepartments } from "@/hooks/useDepartments";
 import { toast } from "sonner";
 
 const formSchema = z.object({
@@ -34,23 +34,10 @@ interface InviteUserFormProps {
   onSuccess: () => void;
 }
 
-interface Role {
-  id: string;
-  name: string;
-  display_name: string;
-}
-
-interface Department {
-  id: string;
-  name: string;
-}
-
 export function InviteUserForm({ onSuccess }: InviteUserFormProps) {
   const { createInvitation, getInvitationsByEmail } = useInvitations();
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { roles, loading: rolesLoading } = useRoles(true);
+  const { departments, loading: departmentsLoading } = useDepartments();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -60,47 +47,6 @@ export function InviteUserForm({ onSuccess }: InviteUserFormProps) {
       department: "",
     },
   });
-
-  useEffect(() => {
-    fetchRolesAndDepartments();
-  }, []);
-
-  const fetchRolesAndDepartments = async () => {
-    try {
-      setError(null);
-      // Fetch roles (exclude super_admin from invitation options)
-      const { data: rolesData, error: rolesError } = await supabase
-        .from('roles')
-        .select('*')
-        .neq('name', 'super_admin')
-        .order('display_name');
-
-      if (rolesError) {
-        console.error('Roles error:', rolesError);
-        throw rolesError;
-      }
-
-      // Fetch departments
-      const { data: deptsData, error: deptsError } = await supabase
-        .from('departments')
-        .select('*')
-        .order('name');
-
-      if (deptsError) {
-        console.error('Departments error:', deptsError);
-        throw deptsError;
-      }
-
-      setRoles(rolesData || []);
-      setDepartments(deptsData || []);
-    } catch (error: any) {
-      console.error('Error fetching data:', error);
-      setError(error.message || 'Failed to load roles and departments');
-      toast.error('Failed to load roles and departments');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -142,17 +88,10 @@ export function InviteUserForm({ onSuccess }: InviteUserFormProps) {
     }
   };
 
+  const loading = rolesLoading || departmentsLoading;
+
   if (loading) {
     return <div className="p-4 text-center">Loading...</div>;
-  }
-
-  if (error) {
-    return (
-      <div className="p-4">
-        <div className="text-red-600 mb-4">{error}</div>
-        <Button onClick={fetchRolesAndDepartments}>Retry</Button>
-      </div>
-    );
   }
 
   return (
@@ -186,7 +125,7 @@ export function InviteUserForm({ onSuccess }: InviteUserFormProps) {
                 <SelectContent>
                   {roles.map((role) => (
                     <SelectItem key={role.id} value={role.id}>
-                      {role.display_name}
+                      {role.displayName}
                     </SelectItem>
                   ))}
                 </SelectContent>
