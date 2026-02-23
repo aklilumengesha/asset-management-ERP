@@ -1,13 +1,4 @@
-
-export const disposalReasons = [
-  "End of Life",
-  "Damaged Beyond Repair",
-  "Obsolete",
-  "Sale",
-  "Donation",
-  "Other",
-] as const;
-
+// Disposal methods are still hardcoded - will be made dynamic in next commit
 export const disposalMethods = [
   "Scrapped",
   "Sold",

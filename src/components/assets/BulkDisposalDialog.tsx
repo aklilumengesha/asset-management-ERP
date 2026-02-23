@@ -22,13 +22,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { DisposalDatePicker } from "./disposal/DisposalDatePicker";
-import { disposalReasons } from "./disposal/constants";
+import { disposalMethods } from "./disposal/constants";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { AlertCircle, FileOutput, Upload } from "lucide-react";
 import { csvToAssets } from "./disposal/utils";
+import { useDisposalReasons } from "@/hooks/useDisposalReasons";
 
 interface Asset {
   id: string;
@@ -57,6 +58,7 @@ export function BulkDisposalDialog({
   onOpenChange,
   onDisposalComplete,
 }: BulkDisposalDialogProps) {
+  const { reasons: disposalReasons, loading: reasonsLoading } = useDisposalReasons();
   const [reason, setReason] = useState("");
   const [date, setDate] = useState<Date>();
   const [salvageValue, setSalvageValue] = useState("");
@@ -506,13 +508,16 @@ export function BulkDisposalDialog({
                 onValueChange={setReason} 
                 value={reason}
                 required
+                disabled={reasonsLoading}
               >
                 <SelectTrigger id="reason" className="bg-background">
-                  <SelectValue placeholder="Select disposal reason" />
+                  <SelectValue placeholder={reasonsLoading ? "Loading reasons..." : "Select disposal reason"} />
                 </SelectTrigger>
                 <SelectContent position="popper" sideOffset={4}>
                   {disposalReasons.map((reason) => (
-                    <SelectItem key={reason} value={reason}>{reason}</SelectItem>
+                    <SelectItem key={reason.id} value={reason.code}>
+                      {reason.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>

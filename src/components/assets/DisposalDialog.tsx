@@ -22,9 +22,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { DisposalDatePicker } from "./disposal/DisposalDatePicker";
 import { FinancialImpactDisplay } from "./disposal/FinancialImpactDisplay";
-import { disposalReasons, disposalMethods } from "./disposal/constants";
+import { disposalMethods } from "./disposal/constants";
 import { calculateFinancialImpact } from "./disposal/utils";
 import { DisposalDialogProps } from "./disposal/types";
+import { useDisposalReasons } from "@/hooks/useDisposalReasons";
 
 export function DisposalDialog({
   assetId,
@@ -34,6 +35,7 @@ export function DisposalDialog({
   onOpenChange,
   onDisposalComplete
 }: DisposalDialogProps) {
+  const { reasons: disposalReasons, loading: reasonsLoading } = useDisposalReasons();
   const [reason, setReason] = useState("");
   const [method, setMethod] = useState("");
   const [date, setDate] = useState<Date>();
@@ -104,13 +106,15 @@ export function DisposalDialog({
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
             <Label htmlFor="reason" className="required">Reason for Disposal</Label>
-            <Select onValueChange={setReason} required>
+            <Select onValueChange={setReason} required disabled={reasonsLoading}>
               <SelectTrigger id="reason" className="bg-background">
-                <SelectValue placeholder="Select disposal reason" />
+                <SelectValue placeholder={reasonsLoading ? "Loading reasons..." : "Select disposal reason"} />
               </SelectTrigger>
               <SelectContent position="popper" sideOffset={4}>
                 {disposalReasons.map((reason) => (
-                  <SelectItem key={reason} value={reason}>{reason}</SelectItem>
+                  <SelectItem key={reason.id} value={reason.code}>
+                    {reason.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
