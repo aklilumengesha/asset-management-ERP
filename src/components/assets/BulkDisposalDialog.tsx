@@ -22,12 +22,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { DisposalDatePicker } from "./disposal/DisposalDatePicker";
-import { disposalMethods } from "./disposal/constants";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
-import { AlertCircle, FileOutput, Upload } from "lucide-react";
+import { AlertCircle, FileOutput } from "lucide-react";
 import { csvToAssets } from "./disposal/utils";
 import { useDisposalReasons } from "@/hooks/useDisposalReasons";
 

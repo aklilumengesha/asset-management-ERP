@@ -22,10 +22,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { DisposalDatePicker } from "./disposal/DisposalDatePicker";
 import { FinancialImpactDisplay } from "./disposal/FinancialImpactDisplay";
-import { disposalMethods } from "./disposal/constants";
 import { calculateFinancialImpact } from "./disposal/utils";
 import { DisposalDialogProps } from "./disposal/types";
 import { useDisposalReasons } from "@/hooks/useDisposalReasons";
+import { useDisposalMethods } from "@/hooks/useDisposalMethods";
 
 export function DisposalDialog({
   assetId,
@@ -36,6 +36,7 @@ export function DisposalDialog({
   onDisposalComplete
 }: DisposalDialogProps) {
   const { reasons: disposalReasons, loading: reasonsLoading } = useDisposalReasons();
+  const { methods: disposalMethods, loading: methodsLoading } = useDisposalMethods();
   const [reason, setReason] = useState("");
   const [method, setMethod] = useState("");
   const [date, setDate] = useState<Date>();
@@ -122,13 +123,15 @@ export function DisposalDialog({
 
           <div className="grid gap-2">
             <Label htmlFor="method" className="required">Disposal Method</Label>
-            <Select onValueChange={setMethod} required>
+            <Select onValueChange={setMethod} required disabled={methodsLoading}>
               <SelectTrigger id="method" className="bg-background">
-                <SelectValue placeholder="Select disposal method" />
+                <SelectValue placeholder={methodsLoading ? "Loading methods..." : "Select disposal method"} />
               </SelectTrigger>
               <SelectContent position="popper" sideOffset={4}>
                 {disposalMethods.map((method) => (
-                  <SelectItem key={method} value={method}>{method}</SelectItem>
+                  <SelectItem key={method.id} value={method.code}>
+                    {method.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
