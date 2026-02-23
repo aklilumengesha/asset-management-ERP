@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Edit2, Trash2 } from "lucide-react";
+import { Plus, Edit2, Trash2, AlertCircle } from "lucide-react";
 import { CreateLocationDialog } from "./CreateLocationDialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,28 +17,20 @@ import {
 } from "@/components/ui/pagination";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-
-const mockLocations = Array(150).fill(null).map((_, index) => ({
-  id: `${index + 1}`,
-  name: `Location ${index + 1}`,
-  code: `LOC-${(index + 1).toString().padStart(3, '0')}`,
-  type: ["Head Office", "Branch", "Warehouse"][index % 3],
-  country: ["US", "ET", "UK"][index % 3],
-  city: ["New York", "Addis Ababa", "London"][index % 3],
-  address: `${index + 1} Main Street`,
-  status: "Active",
-}));
+import { useLocations } from "@/hooks/useLocations";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const ITEMS_PER_PAGE = 10;
 
 export function LocationsList() {
+  const { locations, loading, error } = useLocations();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [filterCountry, setFilterCountry] = useState("all");
   const [filterCity, setFilterCity] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  const filteredLocations = mockLocations.filter(location => {
+  const filteredLocations = locations.filter(location => {
     const matchesSearch = location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          location.code.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCountry = filterCountry === "all" || location.country === filterCountry;
@@ -52,6 +44,47 @@ export function LocationsList() {
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
+
+  // Show error state if table doesn't exist
+  if (error && error.message.includes('relation "public.locations" does not exist')) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Database Table Missing</AlertTitle>
+            <AlertDescription className="mt-2">
+              <p className="mb-4">
+                The locations table doesn't exist in your database yet. Please run the SQL migration file to create it.
+              </p>
+              <div className="bg-black/10 p-4 rounded-md">
+                <p className="font-mono text-sm mb-2">Run this file in your Supabase SQL Editor:</p>
+                <p className="font-mono text-sm font-bold">supabase_locations_table.sql</p>
+              </div>
+              <p className="mt-4 text-sm">
+                After running the SQL file, refresh this page to see your locations.
+              </p>
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading locations...</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -90,8 +123,8 @@ export function LocationsList() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Countries</SelectItem>
-              {Array.from(new Set(mockLocations.map(l => l.country))).map(country => (
-                <SelectItem key={country} value={country}>{country}</SelectItem>
+              {Array.from(new Set(locations.map(l => l.country).filter(Boolean))).map(country => (
+                <SelectItem key={country} value={country!}>{country}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -107,8 +140,8 @@ export function LocationsList() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Cities</SelectItem>
-              {Array.from(new Set(mockLocations.map(l => l.city))).map(city => (
-                <SelectItem key={city} value={city}>{city}</SelectItem>
+              {Array.from(new Set(locations.map(l => l.city).filter(Boolean))).map(city => (
+                <SelectItem key={city} value={city!}>{city}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -142,7 +175,7 @@ export function LocationsList() {
                     <TableCell>{location.type}</TableCell>
                     <TableCell>{location.country}</TableCell>
                     <TableCell>{location.city}</TableCell>
-                    <TableCell>{location.status}</TableCell>
+                    <TableCell>{location.status || 'Active'}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button variant="ghost" size="icon">

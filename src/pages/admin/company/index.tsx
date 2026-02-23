@@ -6,32 +6,20 @@ import { CompanyInfoForm } from "@/components/admin/company/CompanyInfoForm";
 
 export default function CompanySetup() {
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-6">Company Setup</h1>
+    <div className="container mx-auto py-8 px-4">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Company Setup</h1>
+        <p className="text-gray-600 mt-2">Configure company information and manage locations</p>
+      </div>
       
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="bg-muted p-1 w-full sm:w-auto inline-flex h-auto space-x-1">
-          <TabsTrigger 
-            value="general"
-            className="px-4 py-2 rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:bg-muted-foreground/10 transition-colors"
-          >
-            General
-          </TabsTrigger>
-          <TabsTrigger 
-            value="locations"
-            className="px-4 py-2 rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:bg-muted-foreground/10 transition-colors"
-          >
-            Locations
-          </TabsTrigger>
-          <TabsTrigger 
-            value="preferences"
-            className="px-4 py-2 rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:bg-muted-foreground/10 transition-colors"
-          >
-            Preferences
-          </TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 lg:w-[600px]">
+          <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="locations">Locations</TabsTrigger>
+          <TabsTrigger value="preferences">Preferences</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="general">
+        <TabsContent value="general" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Company Information</CardTitle>
@@ -45,11 +33,11 @@ export default function CompanySetup() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="locations">
+        <TabsContent value="locations" className="space-y-4">
           <LocationsList />
         </TabsContent>
 
-        <TabsContent value="preferences">
+        <TabsContent value="preferences" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Company Preferences</CardTitle>

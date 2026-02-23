@@ -20,72 +20,155 @@ import { DepreciationTab } from "@/components/assets/tabs/DepreciationTab";
 import { MaintenanceTab } from "@/components/assets/tabs/MaintenanceTab";
 import { AttachmentsTab } from "@/components/assets/tabs/AttachmentsTab";
 import { LocationTab } from "@/components/assets/tabs/LocationTab";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import type { MaintenanceTask } from "@/types/maintenance";
 
-const mockAssetDetail = {
-  id: "AST001",
-  name: "HP Laptop EliteBook G8",
-  category: "IT Equipment",
-  location: "IT Department",
-  status: "In Service",
-  value: 1200.00,
-  acquisitionDate: "2023-01-15",
-  purchasePrice: 1500.00,
-  currentBookValue: 1200.00,
-  assignedTo: "John Doe",
-  itCategory: "Laptop",
-  brandModel: "HP EliteBook G8",
-  processor: "Intel i7-1165G7",
-  memory: "16GB DDR4",
-  storage: "512GB SSD",
-  color: "Silver",
-  condition: "B",
-  conditionNotes: "Minor wear on keyboard",
-  otherSpecs: "Windows 11 Pro, 14-inch FHD Display",
-  maintenanceHistory: [
-    {
-      id: "MAINT001",
-      assetId: "AST001",
-      assetName: "HP Laptop EliteBook G8",
-      scheduledDate: "2023-06-15",
-      description: "Regular maintenance check",
-      cost: 50.00,
-      status: "Completed",
-      completedBy: "Mike Smith",
-      vendor: "Tech Solutions Inc"
-    }
-  ] as MaintenanceTask[],
+interface AssetDetail {
+  id: string;
+  name: string;
+  assetNumber: string;
+  category: string;
+  location: string;
+  status: string;
+  value: number;
+  acquisitionDate?: string;
+  purchasePrice?: number;
+  purchaseDate?: string;
+  currentBookValue?: number;
+  assignedTo?: string;
+  itCategory?: string;
+  brandModel?: string;
+  processor?: string;
+  memory?: string;
+  storage?: string;
+  color?: string;
+  condition?: string;
+  conditionNotes?: string;
+  otherSpecs?: string;
+  serialNumber?: string;
+  model?: string;
+  manufacturer?: string;
+  maintenanceHistory: MaintenanceTask[];
   depreciation: {
-    method: "Straight Line",
-    usefulLife: "3 years",
-    salvageValue: 300.00,
-    monthlyDepreciation: 33.33
-  },
-  attachments: [
-    {
-      id: 1,
-      name: "Purchase Invoice",
-      type: "INVOICE",
-      date: "2023-01-15"
-    },
-    {
-      id: 2,
-      name: "Warranty Card",
-      type: "WARRANTY",
-      date: "2023-01-15"
-    }
-  ]
-};
+    method: string;
+    usefulLife: string;
+    salvageValue: number;
+    monthlyDepreciation: number;
+  };
+  attachments: Array<{
+    id: number;
+    name: string;
+    type: string;
+    date: string;
+  }>;
+}
 
 export default function AssetDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const asset = mockAssetDetail;
-  const isITAsset = asset.category === "IT Equipment";
+  const [asset, setAsset] = useState<AssetDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (id) {
+      fetchAssetDetail(id);
+    }
+  }, [id]);
+
+  const fetchAssetDetail = async (assetId: string) => {
+    try {
+      setLoading(true);
+      
+      const { data, error } = await supabase
+        .from('assets')
+        .select(`
+          *,
+          asset_categories(name),
+          asset_statuses(name),
+          condition_grades(grade_code, name)
+        `)
+        .eq('id', assetId)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        // Map the database data to the expected format
+        const mappedAsset: AssetDetail = {
+          id: data.id,
+          name: data.name,
+          assetNumber: data.asset_number || data.id,
+          category: data.category || data.asset_categories?.name || 'Unknown',
+          location: 'Unknown Location', // Will be populated when we join with locations
+          status: data.status || data.asset_statuses?.name || 'Unknown',
+          value: data.current_value || data.purchase_price || 0,
+          acquisitionDate: data.purchase_date,
+          purchasePrice: data.purchase_price,
+          purchaseDate: data.purchase_date,
+          currentBookValue: data.current_value || data.purchase_price,
+          assignedTo: 'Unassigned', // Will be populated when we join with users
+          serialNumber: data.serial_number,
+          model: data.model,
+          manufacturer: data.manufacturer,
+          condition: data.condition_grades?.grade_code || 'N/A',
+          maintenanceHistory: [], // TODO: Fetch from maintenance table
+          depreciation: {
+            method: 'Straight Line',
+            usefulLife: '3 years',
+            salvageValue: (data.purchase_price || 0) * 0.2,
+            monthlyDepreciation: ((data.purchase_price || 0) * 0.8) / 36
+          },
+          attachments: [] // TODO: Fetch from attachments table
+        };
+
+        setAsset(mappedAsset);
+      }
+    } catch (error: any) {
+      console.error('Error fetching asset:', error);
+      toast.error('Failed to load asset details');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleTransferComplete = () => {
     console.log("Asset transferred, refreshing data...");
+    if (id) {
+      fetchAssetDetail(id);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading asset details...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!asset) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Asset Not Found</h2>
+          <p className="text-muted-foreground mb-6">The asset you're looking for doesn't exist.</p>
+          <Button onClick={() => navigate("/assets")}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Assets
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const isITAsset = asset.category === "IT Equipment";
 
   return (
     <div className="container mx-auto px-4 py-8">
