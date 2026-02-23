@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { addDays } from "date-fns";
 import { DateRange } from "react-day-picker";
 import { AssetFilters } from "@/components/assets/filters/AssetFilters";
@@ -7,13 +7,14 @@ import { AssetTable } from "@/components/assets/table/AssetTable";
 import { DisposalDialog } from "@/components/assets/DisposalDialog";
 import { BulkDisposalDialog } from "@/components/assets/BulkDisposalDialog";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowRight, Trash2, ClipboardList, WrenchIcon, DollarSign } from "lucide-react";
+import { Plus, Trash2, ClipboardList } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { CreateAssetForm } from "@/components/assets/CreateAssetForm";
-import { AssetLocation } from "@/types/asset";
 import { HorizontalAssetsTabs } from "@/components/assets/HorizontalAssetsTabs";
 import { useAssetStatuses } from "@/hooks/useAssetStatuses";
 import { useAssetCategories } from "@/hooks/useAssetCategories";
+import { useAssets } from "@/hooks/useAssets";
+import { useLocations } from "@/hooks/useLocations";
 import {
   Pagination,
   PaginationContent,
@@ -34,68 +35,18 @@ interface Location {
   city: string;
 }
 
-const mockAssets = Array.from({ length: 1000 }, (_, index) => ({
-  id: `AST${(index + 1).toString().padStart(4, '0')}`,
-  name: `Asset ${index + 1}`,
-  assetNumber: `AST-${(index + 1).toString().padStart(4, '0')}`,
-  category: ['IT Equipment', 'Furniture', 'Vehicle', 'Office Equipment', 'Manufacturing Equipment'][Math.floor(Math.random() * 5)],
-  location: {
-    id: String(Math.floor(Math.random() * 4) + 1),
-    name: ['Addis Ababa HQ', 'Dire Dawa Branch', 'Bahir Dar Office', 'Hawassa Center'][Math.floor(Math.random() * 4)],
-    code: ['ADD-001', 'DIR-001', 'BAH-001', 'HAW-001'][Math.floor(Math.random() * 4)],
-    type: 'Branch',
-    country: 'Ethiopia',
-    city: ['Addis Ababa', 'Dire Dawa', 'Bahir Dar', 'Hawassa'][Math.floor(Math.random() * 4)],
-  },
-  status: ['In Service', 'Under Repair', 'Disposed', 'In Transit'][Math.floor(Math.random() * 4)],
-  value: Math.floor(Math.random() * 100000) + 1000,
-}));
-
-const locations: AssetLocation[] = [
-  {
-    id: "1",
-    name: "Addis Ababa HQ",
-    code: "ADD-001",
-    type: "Head Office",
-    country: "Ethiopia",
-    city: "Addis Ababa"
-  },
-  {
-    id: "2",
-    name: "Dire Dawa Branch",
-    code: "DIR-001",
-    type: "Branch",
-    country: "Ethiopia",
-    city: "Dire Dawa"
-  },
-  {
-    id: "3",
-    name: "Bahir Dar Office",
-    code: "BAH-001",
-    type: "Branch",
-    country: "Ethiopia",
-    city: "Bahir Dar"
-  },
-  {
-    id: "4",
-    name: "Hawassa Center",
-    code: "HAW-001",
-    type: "Branch",
-    country: "Ethiopia",
-    city: "Hawassa"
-  }
-];
-
 export default function Assets() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { categories: dbCategories, loading: categoriesLoading } = useAssetCategories();
-  const { statuses: dbStatuses, loading: statusesLoading } = useAssetStatuses();
+  const { categories: dbCategories } = useAssetCategories();
+  const { statuses: dbStatuses } = useAssetStatuses();
+  const { assets, loading: isLoadingAssets, fetchAssets } = useAssets();
+  const { locations, loading: isLoadingLocations } = useLocations();
+  
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [selectedLocation, setSelectedLocation] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedAssetForDisposal, setSelectedAssetForDisposal] = useState<(typeof mockAssets)[0] | null>(null);
+  const [selectedAssetForDisposal, setSelectedAssetForDisposal] = useState<any | null>(null);
   const [isBulkDisposalOpen, setIsBulkDisposalOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -111,12 +62,13 @@ export default function Assets() {
   const statuses = ["All", ...dbStatuses.map(status => status.name)];
   const ITEMS_PER_PAGE = 10;
 
-  const filteredAssets = mockAssets.filter((asset) => {
-    const matchesSearch = asset.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         asset.id.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredAssets = assets.filter((asset) => {
+    const matchesSearch = asset.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         asset.id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         asset.assetNumber?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === "All" || asset.category === selectedCategory;
     const matchesStatus = selectedStatus === "All" || asset.status === selectedStatus;
-    const matchesLocation = selectedLocation === "All" || asset.location.id === selectedLocation;
+    const matchesLocation = selectedLocation === "All" || asset.location?.id?.toString() === selectedLocation;
 
     return matchesSearch && matchesCategory && matchesStatus && matchesLocation;
   });
@@ -170,12 +122,13 @@ export default function Assets() {
 
   const refreshAssetList = () => {
     console.log("Refreshing asset list");
+    fetchAssets(); // Fetch fresh data from Supabase
     setSelectedAssets([]);
   };
 
   const handleCreateSuccess = () => {
     setIsCreateOpen(false);
-    refreshAssetList();
+    refreshAssetList(); // Refresh the list after creating
   };
 
   const toggleAssetSelection = (assetId: string) => {
@@ -189,21 +142,34 @@ export default function Assets() {
   const createFormCategories = categories.filter(cat => cat !== "All");
   const createFormLocations = locations;
 
-  const handleDisposeAsset = (asset: (typeof mockAssets)[0]) => {
+  const handleDisposeAsset = (asset: any) => {
     setSelectedAssetForDisposal(asset);
   };
 
-  const assetsForBulkDisposal = mockAssets.map(asset => ({
+  const assetsForBulkDisposal = assets.map(asset => ({
     id: asset.id,
     name: asset.name,
-    assetNumber: asset.id,
+    assetNumber: asset.assetNumber || asset.id,
     category: asset.category,
-    location: asset.location.name,
+    location: asset.location?.name || "Unknown",
     status: asset.status,
-    currentValue: asset.value,
-    ifrsValue: asset.value * 0.95, // Mock IFRS value
-    taxValue: asset.value * 0.9, // Mock tax value
+    currentValue: asset.value || 0,
+    ifrsValue: (asset.value || 0) * 0.95,
+    taxValue: (asset.value || 0) * 0.9,
   }));
+
+  if (isLoadingAssets || isLoadingLocations) {
+    return (
+      <div className="container mx-auto px-4 py-6 sm:py-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading assets...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-6 sm:py-8">

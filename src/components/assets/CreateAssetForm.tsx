@@ -13,7 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { AssetLocation } from "@/types/asset";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useAssets } from "@/hooks/useAssets";
 
 interface CreateAssetFormProps {
   onSuccess: () => void;
@@ -31,6 +32,9 @@ interface FormData {
 }
 
 export function CreateAssetForm({ onSuccess, categories = [], locations = [], defaultValues }: CreateAssetFormProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { createAsset } = useAssets();
+  
   const form = useForm<FormData>({
     defaultValues: defaultValues || {
       name: "",
@@ -50,12 +54,28 @@ export function CreateAssetForm({ onSuccess, categories = [], locations = [], de
 
   const onSubmit = async (data: FormData) => {
     try {
-      // In a real app, this would be an API call
-      console.log("Creating asset:", data);
-      onSuccess();
-      form.reset();
-    } catch (error) {
+      setIsSubmitting(true);
+      
+      // Create asset using Supabase
+      const assetData = {
+        name: data.name,
+        category: data.category,
+        location_id: data.locationId,
+        purchase_price: parseFloat(data.purchasePrice),
+        purchase_date: data.purchaseDate,
+        status: "Available", // Default status
+      };
+      
+      const { error } = await createAsset(assetData);
+      
+      if (!error) {
+        form.reset();
+        onSuccess();
+      }
+    } catch (error: any) {
       console.error("Error creating asset:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -113,15 +133,21 @@ export function CreateAssetForm({ onSuccess, categories = [], locations = [], de
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a location" />
+                    <SelectValue placeholder={locations.length === 0 ? "No locations available" : "Select a location"} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {locations.map((location) => (
-                    <SelectItem key={location.id} value={location.id}>
-                      {location.name} ({location.code}) - {location.city}
-                    </SelectItem>
-                  ))}
+                  {locations.length === 0 ? (
+                    <div className="p-2 text-sm text-muted-foreground text-center">
+                      No locations found. Please create a location first.
+                    </div>
+                  ) : (
+                    locations.map((location) => (
+                      <SelectItem key={location.id} value={location.id}>
+                        {location.name} ({location.code}) - {location.city}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -165,7 +191,9 @@ export function CreateAssetForm({ onSuccess, categories = [], locations = [], de
           )}
         />
 
-        <Button type="submit" className="w-full">Create Asset</Button>
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? "Creating..." : "Create Asset"}
+        </Button>
       </form>
     </Form>
   );
