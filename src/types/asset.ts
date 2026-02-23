@@ -6,4 +6,6 @@ export interface AssetLocation {
   type: string;
   country: string;
   city: string;
+  address?: string;
+  status?: string;
 }

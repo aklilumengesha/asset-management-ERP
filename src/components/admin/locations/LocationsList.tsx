@@ -46,24 +46,42 @@ export function LocationsList() {
   );
 
   // Show error state if table doesn't exist
-  if (error && error.message.includes('relation "public.locations" does not exist')) {
+  if (error) {
+    if (error.message.includes('relation "public.locations" does not exist')) {
+      return (
+        <Card>
+          <CardContent className="pt-6">
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Database Table Missing</AlertTitle>
+              <AlertDescription className="mt-2">
+                <p className="mb-4">
+                  The locations table doesn't exist in your database yet. Please run the SQL migration file to create it.
+                </p>
+                <div className="bg-black/10 p-4 rounded-md">
+                  <p className="font-mono text-sm mb-2">Run this file in your Supabase SQL Editor:</p>
+                  <p className="font-mono text-sm font-bold">supabase_locations_table.sql</p>
+                </div>
+                <p className="mt-4 text-sm">
+                  After running the SQL file, refresh this page to see your locations.
+                </p>
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
+      );
+    }
+    
+    // Show generic error for other issues
     return (
       <Card>
         <CardContent className="pt-6">
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Database Table Missing</AlertTitle>
+            <AlertTitle>Error Loading Locations</AlertTitle>
             <AlertDescription className="mt-2">
-              <p className="mb-4">
-                The locations table doesn't exist in your database yet. Please run the SQL migration file to create it.
-              </p>
-              <div className="bg-black/10 p-4 rounded-md">
-                <p className="font-mono text-sm mb-2">Run this file in your Supabase SQL Editor:</p>
-                <p className="font-mono text-sm font-bold">supabase_locations_table.sql</p>
-              </div>
-              <p className="mt-4 text-sm">
-                After running the SQL file, refresh this page to see your locations.
-              </p>
+              <p className="mb-2">{error.message}</p>
+              <p className="text-sm">Please try refreshing the page or contact support if the issue persists.</p>
             </AlertDescription>
           </Alert>
         </CardContent>
