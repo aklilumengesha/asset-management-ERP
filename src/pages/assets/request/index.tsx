@@ -7,10 +7,12 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Combobox } from "@/components/ui/combobox";
 import { useAssetCategories } from "@/hooks/useAssetCategories";
+import { useRequestStatuses } from "@/hooks/useRequestStatuses";
 
 export default function AssetsRequest() {
   const navigate = useNavigate();
   const { categories, loading: categoriesLoading } = useAssetCategories();
+  const { statuses, loading: statusesLoading } = useRequestStatuses();
   const [categoryFilter, setCategoryFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("");
@@ -21,11 +23,11 @@ export default function AssetsRequest() {
     label: cat.name
   }));
 
-  const statusOptions = [
-    { value: "pending", label: "Pending" },
-    { value: "approved", label: "Approved" },
-    { value: "rejected", label: "Rejected" },
-  ];
+  // Transform statuses for Combobox format
+  const statusOptions = statuses.map(status => ({
+    value: status.code,
+    label: status.name
+  }));
 
   const departmentOptions = [
     { value: "it", label: "IT" },
@@ -82,7 +84,7 @@ export default function AssetsRequest() {
                 options={statusOptions}
                 value={statusFilter}
                 onChange={setStatusFilter}
-                placeholder="All statuses"
+                placeholder={statusesLoading ? "Loading statuses..." : "All statuses"}
                 searchPlaceholder="Search statuses..."
               />
             </div>
