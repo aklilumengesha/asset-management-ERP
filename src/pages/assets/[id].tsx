@@ -51,6 +51,14 @@ interface AssetDetail {
   model?: string;
   manufacturer?: string;
   maintenanceHistory: MaintenanceTask[];
+  locationHistory: Array<{
+    id: string;
+    fromLocation: string;
+    toLocation: string;
+    date: string;
+    assignedTo?: string;
+    department?: string;
+  }>;
   depreciation: {
     method: string;
     usefulLife: string;
@@ -81,55 +89,96 @@ export default function AssetDetail() {
     try {
       setLoading(true);
       
+      // Fetch asset with related data
       const { data, error } = await supabase
         .from('assets')
         .select(`
           *,
           asset_categories(name),
           asset_statuses(name),
-          condition_grades(grade_code, name)
+          condition_grades(grade_code, name),
+          locations(id, name, code, type, country, city)
         `)
         .eq('id', assetId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // If the join fails, try fetching without the location join
+        const { data: assetData, error: assetError } = await supabase
+          .from('assets')
+          .select(`
+            *,
+            asset_categories(name),
+            asset_statuses(name),
+            condition_grades(grade_code, name)
+          `)
+          .eq('id', assetId)
+          .single();
 
-      if (data) {
-        // Map the database data to the expected format
-        const mappedAsset: AssetDetail = {
-          id: data.id,
-          name: data.name,
-          assetNumber: data.asset_number || data.id,
-          category: data.category || data.asset_categories?.name || 'Unknown',
-          location: 'Unknown Location', // Will be populated when we join with locations
-          status: data.status || data.asset_statuses?.name || 'Unknown',
-          value: data.current_value || data.purchase_price || 0,
-          acquisitionDate: data.purchase_date,
-          purchasePrice: data.purchase_price,
-          purchaseDate: data.purchase_date,
-          currentBookValue: data.current_value || data.purchase_price,
-          assignedTo: 'Unassigned', // Will be populated when we join with users
-          serialNumber: data.serial_number,
-          model: data.model,
-          manufacturer: data.manufacturer,
-          condition: data.condition_grades?.grade_code || 'N/A',
-          maintenanceHistory: [], // TODO: Fetch from maintenance table
-          depreciation: {
-            method: 'Straight Line',
-            usefulLife: '3 years',
-            salvageValue: (data.purchase_price || 0) * 0.2,
-            monthlyDepreciation: ((data.purchase_price || 0) * 0.8) / 36
-          },
-          attachments: [] // TODO: Fetch from attachments table
+        if (assetError) throw assetError;
+
+        // Fetch location separately if location_id exists
+        let locationData = null;
+        if (assetData.location_id) {
+          const { data: loc } = await supabase
+            .from('locations')
+            .select('id, name, code, type, country, city')
+            .eq('id', assetData.location_id)
+            .single();
+          locationData = loc;
+        }
+
+        // Combine the data
+        const combinedData = {
+          ...assetData,
+          locations: locationData
         };
 
-        setAsset(mappedAsset);
+        mapAssetData(combinedData);
+        return;
       }
+
+      mapAssetData(data);
     } catch (error: any) {
       console.error('Error fetching asset:', error);
       toast.error('Failed to load asset details');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const mapAssetData = (data: any) => {
+    if (data) {
+      // Map the database data to the expected format
+      const mappedAsset: AssetDetail = {
+        id: data.id,
+        name: data.name,
+        assetNumber: data.asset_number || data.id,
+        category: data.category || data.asset_categories?.name || 'Unknown',
+        location: data.locations?.name || 'No Location Assigned',
+        status: data.status || data.asset_statuses?.name || 'Unknown',
+        value: data.current_value || data.purchase_price || 0,
+        acquisitionDate: data.purchase_date,
+        purchasePrice: data.purchase_price,
+        purchaseDate: data.purchase_date,
+        currentBookValue: data.current_value || data.purchase_price,
+        assignedTo: 'Unassigned', // Will be populated when we join with users
+        serialNumber: data.serial_number,
+        model: data.model,
+        manufacturer: data.manufacturer,
+        condition: data.condition_grades?.grade_code || 'N/A',
+        maintenanceHistory: [], // TODO: Fetch from maintenance table
+        locationHistory: [], // TODO: Fetch from asset_transfers table
+        depreciation: {
+          method: 'Straight Line',
+          usefulLife: '3 years',
+          salvageValue: (data.purchase_price || 0) * 0.2,
+          monthlyDepreciation: ((data.purchase_price || 0) * 0.8) / 36
+        },
+        attachments: [] // TODO: Fetch from attachments table
+      };
+
+      setAsset(mappedAsset);
     }
   };
 
@@ -323,7 +372,7 @@ export default function AssetDetail() {
         </TabsContent>
 
         <TabsContent value="location">
-          <LocationTab />
+          <LocationTab locationHistory={asset.locationHistory} />
         </TabsContent>
       </Tabs>
     </div>

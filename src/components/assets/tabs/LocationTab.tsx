@@ -16,27 +16,11 @@ interface LocationHistory {
   department?: string;
 }
 
-// Mock data - replace with actual data from API
-const locationHistory: LocationHistory[] = [
-  {
-    id: "LOC001",
-    fromLocation: "IT Department",
-    toLocation: "Finance Department",
-    date: "2024-01-15",
-    assignedTo: "Jane Smith",
-    department: "Finance",
-  },
-  {
-    id: "LOC002",
-    fromLocation: "Finance Department",
-    toLocation: "Marketing Department",
-    date: "2024-02-01",
-    assignedTo: "John Doe",
-    department: "Marketing",
-  },
-];
+interface LocationTabProps {
+  locationHistory?: LocationHistory[];
+}
 
-export function LocationTab() {
+export function LocationTab({ locationHistory = [] }: LocationTabProps) {
   return (
     <Card>
       <CardHeader>
