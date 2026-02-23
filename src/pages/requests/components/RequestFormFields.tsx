@@ -1,18 +1,20 @@
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { UseFormReturn } from "react-hook-form";
-import { costCenters, CreateRequestForm } from "../types";
+import { CreateRequestForm } from "../types";
 import { Button } from "@/components/ui/button";
 import { LineItemForm, createDefaultLineItem } from "./line-item";
 import { Plus } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Combobox } from "@/components/ui/combobox";
+import { useDepartments } from "@/hooks/useDepartments";
 
 interface RequestFormFieldsProps {
   form: UseFormReturn<CreateRequestForm>;
 }
 
 export function RequestFormFields({ form }: RequestFormFieldsProps) {
+  const { departments, loading: departmentsLoading } = useDepartments();
   const lineItems = form.watch("lineItems") || [];
   
   const calculateTotalCost = () => {
@@ -34,10 +36,10 @@ export function RequestFormFields({ form }: RequestFormFieldsProps) {
     );
   };
 
-  // Convert cost centers to the format expected by Combobox
-  const costCenterOptions = costCenters.map(center => ({
-    value: center,
-    label: center
+  // Convert departments to cost center options for Combobox
+  const costCenterOptions = departments.map(dept => ({
+    value: dept.name,
+    label: dept.name
   }));
 
   // Create a safe handler for cost center selection
@@ -80,7 +82,7 @@ export function RequestFormFields({ form }: RequestFormFieldsProps) {
                     options={costCenterOptions}
                     value={field.value}
                     onChange={handleCostCenterChange}
-                    placeholder="Select cost center"
+                    placeholder={departmentsLoading ? "Loading departments..." : "Select cost center"}
                     searchPlaceholder="Search cost centers..."
                     className="bg-background"
                   />

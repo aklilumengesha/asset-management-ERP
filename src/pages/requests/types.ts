@@ -34,12 +34,7 @@ export interface CreateRequestForm {
 // Use the useAssetCategories hook to fetch categories
 // See: booking/src/hooks/useAssetCategories.ts
 
-export const costCenters = [
-  "IT Department",
-  "Finance Department",
-  "Operations",
-  "Human Resources",
-  "Marketing",
-  "Sales",
-  "Research & Development",
-];
+// Cost centers are now managed dynamically via departments table
+// Use the useDepartments hook to fetch departments/cost centers
+// See: booking/src/hooks/useDepartments.ts
+

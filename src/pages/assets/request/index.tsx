@@ -8,11 +8,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Combobox } from "@/components/ui/combobox";
 import { useAssetCategories } from "@/hooks/useAssetCategories";
 import { useRequestStatuses } from "@/hooks/useRequestStatuses";
+import { useDepartments } from "@/hooks/useDepartments";
 
 export default function AssetsRequest() {
   const navigate = useNavigate();
   const { categories, loading: categoriesLoading } = useAssetCategories();
   const { statuses, loading: statusesLoading } = useRequestStatuses();
+  const { departments, loading: departmentsLoading } = useDepartments();
   const [categoryFilter, setCategoryFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("");
@@ -29,11 +31,11 @@ export default function AssetsRequest() {
     label: status.name
   }));
 
-  const departmentOptions = [
-    { value: "it", label: "IT" },
-    { value: "finance", label: "Finance" },
-    { value: "hr", label: "Human Resources" },
-  ];
+  // Transform departments for Combobox format
+  const departmentOptions = departments.map(dept => ({
+    value: dept.id,
+    label: dept.name
+  }));
 
   // Updated navigation handler to use the correct route
   const handleCreateRequest = () => {
@@ -97,7 +99,7 @@ export default function AssetsRequest() {
                 options={departmentOptions}
                 value={departmentFilter}
                 onChange={setDepartmentFilter}
-                placeholder="All departments"
+                placeholder={departmentsLoading ? "Loading departments..." : "All departments"}
                 searchPlaceholder="Search departments..."
               />
             </div>
